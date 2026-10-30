@@ -12,6 +12,7 @@ import {
   PAIRING_LEVELS,
   type Brand,
   type BrandInput,
+  type BrandServe,
   type Category,
   type CategoryId,
   type Food,
@@ -108,6 +109,16 @@ export function getRelatedBrands(slug: string): Brand[] {
 
 export function getServeStyle(id: string): ServeStyle | undefined {
   return serveById.get(id);
+}
+
+/** 「お湯割り（焼酎6：お湯4）」 */
+export function formatServe(serve: BrandServe): string {
+  const name = serveById.get(serve.serveId)!.name;
+  return serve.how ? `${name}（${serve.how}）` : name;
+}
+
+export function getRecommendedServe(brand: Brand): BrandServe {
+  return brand.serves.find((s) => s.serveId === brand.recommendedServe)!;
 }
 
 export function getFood(slug: string): Food | undefined {
