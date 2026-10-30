@@ -39,6 +39,11 @@ export function validateContent(c: Content): string[] {
   };
   checkDup("category id", c.categories.map((x) => x.id));
   checkDup("subCategory id", c.subCategories.map((x) => x.id));
+  // /categories/[id] で大分類と小分類を同じ URL 空間に置いているため
+  checkDup(
+    "category id と subCategory id",
+    [...c.categories.map((x) => x.id), ...c.subCategories.map((x) => x.id)],
+  );
   checkDup("serveStyle id", c.serveStyles.map((x) => x.id));
   checkDup("food slug", c.foods.map((x) => x.slug));
   checkDup("brand slug", c.brands.map((x) => x.slug));

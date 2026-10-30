@@ -121,6 +121,10 @@ export function getRecommendedServe(brand: Brand): BrandServe {
   return brand.serves.find((s) => s.serveId === brand.recommendedServe)!;
 }
 
+export function getFoods(): Food[] {
+  return foods;
+}
+
 export function getFood(slug: string): Food | undefined {
   return foodBySlug.get(slug);
 }

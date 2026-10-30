@@ -37,6 +37,7 @@ export default function Home() {
         avoid: b.avoid,
         pairs: getPairings(b.slug).map((p) => ({
           food: getFood(p.foodSlug)!.name,
+          foodSlug: p.foodSlug,
           level: p.level,
           why: p.why,
         })),
@@ -122,7 +123,11 @@ export default function Home() {
               className="flex flex-col gap-2 rounded-2xl border border-line bg-surface px-[18px] pb-1.5 pt-[18px] md:gap-4 md:rounded-[20px] md:p-[26px]"
             >
               <div className="flex items-baseline justify-between gap-3">
-                <h3 className="text-xl font-black md:text-[26px]">{k.name}</h3>
+                <h3 className="text-xl font-black md:text-[26px]">
+                  <Link href={`/categories/${k.id}`} className="hover:text-accent-soft">
+                    {k.name}
+                  </Link>
+                </h3>
                 <span className="text-[11px] tracking-[0.15em] text-subtle md:text-[13px]">
                   {k.nameEn}
                 </span>

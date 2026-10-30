@@ -53,6 +53,7 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
       how: serve.how,
       note: serve.note,
       food: getFood(p.foodSlug)!.name,
+      foodSlug: p.foodSlug,
       why: p.why,
     };
   });
@@ -74,7 +75,7 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
 
   const crumbs: Crumb[] = [
     { label: "ホーム", href: "/" },
-    { label: category.name, href: "/#kinds" },
+    { label: category.name, href: `/categories/${category.id}` },
     { label: sub.name, href: `/categories/${sub.id}` },
     { label: brand.name },
   ];
@@ -168,7 +169,11 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
                 <div className="flex items-center gap-3 rounded-xl border-2 border-accent px-3.5 py-3 md:gap-3.5 md:rounded-[14px] md:p-4">
                   <Glyph char="吽" className="text-[28px] text-accent md:text-[34px]" />
                   <div className="flex flex-col gap-0.5">
-                    <p className="text-base font-bold md:text-[19px]">{c.food}</p>
+                    <p className="text-base font-bold md:text-[19px]">
+                      <Link href={`/foods/${c.foodSlug}`} className="hover:text-accent-soft">
+                        {c.food}
+                      </Link>
+                    </p>
                     <p className="text-[13px] leading-[1.6] text-fg-2 md:text-sm">{c.why}</p>
                   </div>
                 </div>
