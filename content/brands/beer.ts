@@ -21,6 +21,7 @@ export const beerBrands = [
   {
     slug: "kuro-label",
     name: "黒ラベル",
+    kana: "くろらべる",
     subCategoryId: "lager",
     maker: "サッポロビール",
     region: "日本",
@@ -38,6 +39,7 @@ export const beerBrands = [
   {
     slug: "yebisu",
     name: "ヱビス",
+    kana: "えびす",
     subCategoryId: "all-malt",
     maker: "サッポロビール",
     region: "日本",

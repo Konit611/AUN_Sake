@@ -4,6 +4,7 @@ export const shochuBrands = [
   {
     slug: "kurokirishima",
     name: "黒霧島",
+    kana: "くろきりしま きりしましゅぞう",
     subCategoryId: "imo-shochu",
     maker: "霧島酒造",
     region: "宮崎",
