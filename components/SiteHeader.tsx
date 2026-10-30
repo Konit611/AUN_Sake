@@ -3,6 +3,7 @@ import { LogoMark } from "./Logo";
 
 const NAV = [
   { href: "/#pick", label: "銘柄から探す" },
+  { href: "/foods", label: "肴から探す" },
   { href: "/#kinds", label: "お酒の分類" },
   { href: "/notes", label: "ペアリングノート" },
   { href: "/#about", label: "AUNとは" },

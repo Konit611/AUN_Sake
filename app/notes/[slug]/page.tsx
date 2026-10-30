@@ -97,7 +97,9 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
               <div className="flex items-center gap-2.5">
                 <Glyph char="吽" className="text-[28px] text-accent" />
                 <PairingBadge level={pairing.level} />
-                <span className="text-base font-bold">{food.name}</span>
+                <Link href={`/foods/${food.slug}`} className="text-base font-bold hover:text-accent-soft">
+                  {food.name}
+                </Link>
               </div>
               <p className="text-sm leading-[1.75] text-muted">{pairing.why}</p>
             </div>

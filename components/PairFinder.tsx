@@ -15,7 +15,7 @@ export type FinderBrand = {
   tags: string[];
   serve: string;
   avoid?: string;
-  pairs: { food: string; level: PairingLevel; why: string }[];
+  pairs: { food: string; foodSlug: string; level: PairingLevel; why: string }[];
 };
 
 export type FinderCategory = {
@@ -139,11 +139,15 @@ export function PairFinder({ categories }: { categories: FinderCategory[] }) {
           <ul>
             {cur.pairs.map((p) => (
               <li
-                key={p.food}
+                key={p.foodSlug}
                 className="grid grid-cols-[auto_1fr] items-center gap-x-2.5 gap-y-1.5 border-t border-line py-3.5 md:items-start md:gap-x-4"
               >
                 <PairingBadge level={p.level} />
-                <p className="text-[17px] font-bold md:text-[19px]">{p.food}</p>
+                <p className="text-[17px] font-bold md:text-[19px]">
+                  <Link href={`/foods/${p.foodSlug}`} className="hover:text-accent-soft">
+                    {p.food}
+                  </Link>
+                </p>
                 <p className="col-span-2 text-sm leading-[1.75] text-muted md:col-span-1 md:col-start-2 md:text-[15px] md:leading-[1.7]">
                   {p.why}
                 </p>
