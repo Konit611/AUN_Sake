@@ -3,11 +3,13 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoteCard } from "@/components/NoteCard";
 import { SectionHeading } from "@/components/ui";
 import { getBrand, getFood, getNotes } from "@/lib/data";
+import { pageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "ペアリングノート",
   description: "一本の酒と一皿の肴を実際に合わせてみた記録。",
-};
+  path: "/notes",
+});
 
 export default function NotesPage() {
   const notes = getNotes();

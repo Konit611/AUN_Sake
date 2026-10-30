@@ -11,6 +11,7 @@ import {
   getSubCategories,
   getSubCategory,
 } from "@/lib/data";
+import { pageMetadata } from "@/lib/site";
 
 // 銘柄が登録されている小分類だけページを作る
 function subCategoriesWithBrands(categoryId?: Parameters<typeof getSubCategories>[0]) {
@@ -27,10 +28,11 @@ export async function generateMetadata({
   const { sub: id } = await params;
   const sub = getSubCategory(id);
   if (!sub) return {};
-  return {
+  return pageMetadata({
     title: sub.name,
     description: `${sub.name}の銘柄と、息の合う肴。`,
-  };
+    path: `/categories/${sub.id}`,
+  });
 }
 
 export default async function CategoryPage({ params }: PageProps<"/categories/[sub]">) {

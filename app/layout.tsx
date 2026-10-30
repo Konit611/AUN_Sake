@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Zen_Antique, Zen_Kaku_Gothic_New } from "next/font/google";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // 日本語フォントは unicode-range で数百ファイルに分かれるので preload しない
@@ -22,12 +23,17 @@ const zenAntique = Zen_Antique({
 });
 
 export const metadata: Metadata = {
+  metadataBase: SITE_URL,
   title: {
-    default: "AUN — 酒と肴の、阿吽の呼吸。",
+    default: SITE_TITLE,
     template: "%s | AUN",
   },
-  description:
-    "一本の酒と一皿の肴が息を合わせる瞬間を、銘柄ごとに紹介します。",
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    siteName: SITE_NAME,
+    locale: "ja_JP",
+    type: "website",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
