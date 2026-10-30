@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import createMDX from "@next/mdx";
 
 const nextConfig: NextConfig = {
   /* config options here */
@@ -14,4 +15,7 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// MDX is only imported from content/notes, not used as route files
+const withMDX = createMDX({});
+
+export default withMDX(nextConfig);

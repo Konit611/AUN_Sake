@@ -1,0 +1,60 @@
+import type { BrandInput } from "@/lib/types";
+
+export const shochuBrands = [
+  {
+    slug: "kurokirishima",
+    name: "黒霧島",
+    subCategoryId: "imo-shochu",
+    maker: "霧島酒造",
+    region: "宮崎",
+    taste: "黒麹仕込みの芋焼酎。トロッとした甘みと、キリッとした後口。",
+    tags: ["芋の甘み", "黒麹", "キレ"],
+    tasteChart: { sweetness: 4, aroma: 3, kire: 4, koku: 3 },
+    serves: [
+      { serveId: "oyuwari", how: "焼酎6：お湯4", note: "芋の甘い香りがふわりと立つ、いちばんの飲み方。" },
+      { serveId: "rock", how: "大きめの氷で", note: "冷えて甘みが締まり、キレが前に出る。" },
+      { serveId: "mizuwari", how: "焼酎5：水5", note: "軽やかになり、食中にずっと付き合える。" },
+    ],
+    recommendedServe: "oyuwari",
+    pairings: [
+      { food: "buta-kakuni", level: "aun", serve: "oyuwari", why: "お湯割りで立つ芋の甘みが、甘辛い煮汁と重なり、脂は黒麹のキレが流してくれる。" },
+      { food: "satsuma-age", level: "good", serve: "mizuwari", why: "同じ南九州の味。魚のすり身の甘みと芋の香ばしさが自然になじむ。" },
+      { food: "jidori-sumibi", level: "good", serve: "rock", why: "炭の香ばしさと芋の香りが響き合い、噛むほどの旨みを焼酎が受け止める。" },
+    ],
+    avoid: "繊細な白身の刺身は、芋の香りに隠れてしまいがち。",
+  },
+  {
+    slug: "iichiko",
+    name: "いいちこ",
+    subCategoryId: "mugi-shochu",
+    maker: "三和酒類",
+    region: "大分",
+    taste: "軽やかで、ほのかに香ばしい麦の風味。クセが少なく食中酒向き。",
+    tags: ["軽快", "麦の香ばしさ", "すっきり"],
+    serves: [{ serveId: "soda" }, { serveId: "mizuwari" }],
+    recommendedServe: "soda",
+    pairings: [
+      { food: "toriten", level: "aun", serve: "soda", why: "同じ大分生まれ。ソーダ割りの泡が衣の油を切り、麦の香ばしさが衣と重なる。" },
+      { food: "karaage", level: "good", why: "クセのなさが下味のにんにく・醤油を邪魔せず、何杯でも続く。" },
+      { food: "hiyayakko", level: "surprise", serve: "mizuwari", why: "水割りの軽さが大豆の甘みを引き立て、薬味の香りが麦と合う。" },
+    ],
+    avoid: "濃厚なクリーム系は、軽やかな麦の風味が負けてしまう。",
+  },
+  {
+    slug: "chamisul",
+    name: "チャミスル",
+    subCategoryId: "korean-soju",
+    maker: "HITEJINRO",
+    region: "韓国",
+    taste: "竹炭ろ過のすっきりした飲み口に、ほのかな甘み。冷やしてストレートで。",
+    tags: ["すっきり", "ほのかな甘み", "冷やして"],
+    serves: [{ serveId: "straight", how: "よく冷やして" }],
+    recommendedServe: "straight",
+    pairings: [
+      { food: "samgyeopsal", level: "aun", why: "冷えたすっきり感が豚バラの脂をさっと洗い流し、次の一枚を呼ぶ。" },
+      { food: "kimchi-jjigae", level: "good", why: "辛く熱いスープのあとの冷たい一杯が、口の中をリセットする。" },
+      { food: "haemul-pajeon", level: "good", why: "焼いた生地の油と香ばしさに、軽い甘みがやさしく寄り添う。" },
+    ],
+    avoid: "甘いデザートは、アルコールの苦みが目立ちやすい。",
+  },
+] satisfies BrandInput[];

@@ -1,0 +1,55 @@
+import type { BrandInput } from "@/lib/types";
+
+export const sakeBrands = [
+  {
+    slug: "dassai-45",
+    name: "獺祭 純米大吟醸45",
+    subCategoryId: "junmai-daiginjo",
+    maker: "旭酒造",
+    region: "山口",
+    taste: "華やかな吟醸香と、フルーティでやわらかな甘み。",
+    tags: ["華やか", "フルーティ", "やわらか"],
+    serves: [{ serveId: "chilled", how: "10℃前後・ワイングラスで" }],
+    recommendedServe: "chilled",
+    pairings: [
+      { food: "white-fish-carpaccio", level: "aun", why: "果実のような香りに、オリーブオイルと柑橘の酸味がぴたりと重なる。" },
+      { food: "yuba-sashimi", level: "good", why: "やさしい大豆の甘みが、やわらかな口当たりを邪魔しない。" },
+      { food: "prosciutto-persimmon", level: "surprise", why: "塩気と果実の甘みが、吟醸香の華やかさをさらに引き出す。" },
+    ],
+    avoid: "味の濃い煮込みや揚げ物は、繊細な香りを覆ってしまう。",
+  },
+  {
+    slug: "kubota-senju",
+    name: "久保田 千寿",
+    subCategoryId: "ginjo",
+    maker: "朝日酒造",
+    region: "新潟",
+    taste: "淡麗辛口。すっきりとして、食事の邪魔をしない。",
+    tags: ["淡麗", "辛口", "食中酒"],
+    serves: [{ serveId: "hiya" }, { serveId: "kan", how: "ぬる燗" }],
+    recommendedServe: "hiya",
+    pairings: [
+      { food: "sashimi-moriawase", level: "aun", why: "淡麗な飲み口が魚の旨みを引き立て、辛口のキレが後味を整える。" },
+      { food: "yudofu", level: "good", serve: "kan", why: "ぬる燗にすると、昆布出汁のやさしさと米の旨みが溶け合う。" },
+      { food: "yakizakana-shio", level: "good", why: "皮の香ばしさと塩気を、すっきりした酒が受け流す。" },
+    ],
+    avoid: "甘い味付けの濃い料理は、辛口が浮いてしまうことがある。",
+  },
+  {
+    slug: "hakkaisan-tokubetsu-honjozo",
+    name: "八海山 特別本醸造",
+    subCategoryId: "honjozo",
+    maker: "八海醸造",
+    region: "新潟",
+    taste: "軽快でなめらか。冷やでも燗でもきれいに飲める。",
+    tags: ["軽快", "なめらか", "燗映え"],
+    serves: [{ serveId: "kan", how: "40〜45℃" }, { serveId: "hiya" }],
+    recommendedServe: "kan",
+    pairings: [
+      { food: "oden", level: "aun", serve: "kan", why: "燗にした酒の温かさと、出汁の旨みが同じ方向を向く。" },
+      { food: "nigiri-sushi", level: "good", why: "軽快な酒質が酢飯とネタの味を邪魔せず、口をすっきりさせる。" },
+      { food: "shiokara", level: "surprise", why: "強い塩気と旨みを、なめらかな燗酒がまるく包み込む。" },
+    ],
+    avoid: "スパイスの強いエスニック料理とは方向性が合いにくい。",
+  },
+] satisfies BrandInput[];
