@@ -4,12 +4,15 @@ export type Category = {
   id: CategoryId;
   name: string;
   nameEn: string;
+  /** 検索用のよみ（ひらがな） */
+  kana?: string;
 };
 
 export type SubCategory = {
   id: string;
   categoryId: CategoryId;
   name: string;
+  kana?: string;
 };
 
 /** 飲み方のマスター（お湯割り、ロック…） */
@@ -21,6 +24,7 @@ export type ServeStyle = {
 export type Food = {
   slug: string;
   name: string;
+  kana?: string;
   image?: string;
 };
 
@@ -51,6 +55,8 @@ export type BrandServe = {
 export type BrandInput = {
   slug: string;
   name: string;
+  /** 検索用のよみ（ひらがな）。カタカナだけの名前なら不要 */
+  kana?: string;
   subCategoryId: string;
   maker: string;
   region: string;

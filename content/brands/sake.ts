@@ -4,6 +4,7 @@ export const sakeBrands = [
   {
     slug: "dassai-45",
     name: "獺祭 純米大吟醸45",
+    kana: "だっさい あさひしゅぞう",
     subCategoryId: "junmai-daiginjo",
     maker: "旭酒造",
     region: "山口",
@@ -21,6 +22,7 @@ export const sakeBrands = [
   {
     slug: "kubota-senju",
     name: "久保田 千寿",
+    kana: "くぼた せんじゅ",
     subCategoryId: "ginjo",
     maker: "朝日酒造",
     region: "新潟",
@@ -38,6 +40,7 @@ export const sakeBrands = [
   {
     slug: "hakkaisan-tokubetsu-honjozo",
     name: "八海山 特別本醸造",
+    kana: "はっかいさん",
     subCategoryId: "honjozo",
     maker: "八海醸造",
     region: "新潟",
