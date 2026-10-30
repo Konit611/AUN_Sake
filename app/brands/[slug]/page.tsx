@@ -15,6 +15,7 @@ import {
   getServeStyle,
   getSubCategory,
 } from "@/lib/data";
+import { pageMetadata } from "@/lib/site";
 import type { TasteChart } from "@/lib/types";
 
 const CHART_LABELS: Record<keyof TasteChart, string> = {
@@ -34,7 +35,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const brand = getBrand(slug);
   if (!brand) return {};
-  return { title: brand.name, description: brand.taste };
+  return pageMetadata({ title: brand.name, description: brand.taste, path: `/brands/${brand.slug}` });
 }
 
 export default async function BrandPage({ params }: PageProps<"/brands/[slug]">) {

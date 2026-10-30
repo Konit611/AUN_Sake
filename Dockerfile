@@ -14,6 +14,9 @@ RUN npm ci
 FROM base AS builder
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# sitemap・canonical・OGP の URL はビルド時に決まる
+ARG SITE_URL=http://localhost:3000
+ENV SITE_URL=$SITE_URL
 RUN npm run build
 
 # 3) 실행

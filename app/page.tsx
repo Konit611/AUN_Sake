@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { NoteCard } from "@/components/NoteCard";
 import { PairFinder, type FinderCategory } from "@/components/PairFinder";
@@ -15,6 +16,9 @@ import {
   getSubCategories,
   getSubCategory,
 } from "@/lib/data";
+import { pageMetadata } from "@/lib/site";
+
+export const metadata: Metadata = pageMetadata({ path: "/" });
 
 export default function Home() {
   const finder: FinderCategory[] = getCategories()

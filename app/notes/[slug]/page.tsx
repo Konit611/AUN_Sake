@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { Glyph, PairingBadge, PhotoPlaceholder } from "@/components/ui";
 import { getBrand, getFood, getNote, getNotes, getPairings, getSubCategory } from "@/lib/data";
+import { pageMetadata } from "@/lib/site";
 
 export function generateStaticParams() {
   return getNotes().map((n) => ({ slug: n.slug }));
@@ -15,7 +16,12 @@ export async function generateMetadata({
   const { slug } = await params;
   const note = getNote(slug);
   if (!note) return {};
-  return { title: note.title, description: note.quote };
+  return pageMetadata({
+    title: note.title,
+    description: note.quote,
+    path: `/notes/${note.slug}`,
+    type: "article",
+  });
 }
 
 export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
