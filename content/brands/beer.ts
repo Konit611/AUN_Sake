@@ -1,0 +1,55 @@
+import type { BrandInput } from "@/lib/types";
+
+export const beerBrands = [
+  {
+    slug: "super-dry",
+    name: "スーパードライ",
+    subCategoryId: "lager",
+    maker: "アサヒビール",
+    region: "日本",
+    taste: "辛口で、すっきりとしたキレ。強めの炭酸が特徴。",
+    tags: ["辛口", "キレ", "強炭酸"],
+    serves: [{ serveId: "jug", how: "よく冷やして" }],
+    recommendedServe: "jug",
+    pairings: [
+      { food: "yaki-gyoza", level: "aun", why: "辛口のキレと炭酸が、羽根の油と肉汁をリセット。ひと口ごとに新鮮。" },
+      { food: "karaage", level: "good", why: "揚げ油の重さを炭酸が軽くし、塩気がビールの爽快感を引き出す。" },
+      { food: "edamame", level: "good", why: "塩気と豆の甘みが、すっきりした飲み口に寄り添う定番の組み合わせ。" },
+    ],
+    avoid: "繊細な出汁料理は、強い炭酸とキレに負けやすい。",
+  },
+  {
+    slug: "kuro-label",
+    name: "黒ラベル",
+    subCategoryId: "lager",
+    maker: "サッポロビール",
+    region: "日本",
+    taste: "麦のうまみと、さわやかな後味のバランス型。",
+    tags: ["麦のうまみ", "バランス", "爽やか"],
+    serves: [{ serveId: "glass", how: "泡を3割ほどのせて" }],
+    recommendedServe: "glass",
+    pairings: [
+      { food: "yakitori-tare", level: "aun", why: "麦のうまみが甘辛いタレの香ばしさと重なり、後味のさわやかさで締まる。" },
+      { food: "jingisukan", level: "good", why: "羊肉のクセと脂を、麦のコクと炭酸がまとめてくれる。" },
+      { food: "potato-salad", level: "good", why: "マヨネーズのコクとじゃがいもの甘みに、ほどよい苦みがアクセント。" },
+    ],
+    avoid: "甘いスイーツとは苦みがぶつかりやすい。",
+  },
+  {
+    slug: "yebisu",
+    name: "ヱビス",
+    subCategoryId: "all-malt",
+    maker: "サッポロビール",
+    region: "日本",
+    taste: "麦芽100%の深いコクと、上品な苦み。",
+    tags: ["コク", "麦芽100%", "上品な苦み"],
+    serves: [{ serveId: "glass", how: "ゆっくり" }],
+    recommendedServe: "glass",
+    pairings: [
+      { food: "roast-beef", level: "aun", why: "麦芽のコクが肉の旨みと対等に並び、苦みが脂を引き締める。" },
+      { food: "sausage", level: "good", why: "肉汁とスパイスを、深いモルト感がしっかり受け止める。" },
+      { food: "aged-cheese", level: "surprise", why: "塩気とナッツのような香りが、麦芽の香ばしさと響き合う。" },
+    ],
+    avoid: "淡白な冷奴などは、コクに隠れてしまうことも。",
+  },
+] satisfies BrandInput[];
