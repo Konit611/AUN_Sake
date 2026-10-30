@@ -4,10 +4,13 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import "./globals.css";
 
+// 日本語フォントは unicode-range で数百ファイルに分かれるので preload しない
+// （preload すると全ファイル 4MB 超を先読みしてしまう）
 const zenKaku = Zen_Kaku_Gothic_New({
   variable: "--font-zen-kaku",
   weight: ["400", "500", "700", "900"],
   subsets: ["latin"],
+  preload: false,
 });
 
 // 「阿」「吽」の飾り文字だけに使う

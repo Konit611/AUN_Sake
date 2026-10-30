@@ -129,7 +129,12 @@ export default function Home() {
                     key={s.id}
                     className="flex flex-col gap-0.5 border-t border-line py-3 md:flex-row md:justify-between md:gap-3"
                   >
-                    <span className="text-[15px] font-bold md:whitespace-nowrap md:text-base">{s.name}</span>
+                    <Link
+                      href={`/categories/${s.id}`}
+                      className="text-[15px] font-bold text-fg hover:text-accent-soft md:whitespace-nowrap md:text-base"
+                    >
+                      {s.name}
+                    </Link>
                     <span className="flex flex-wrap gap-x-2 text-[13px] text-muted md:justify-end md:text-sm">
                       {s.brands.map((b) => (
                         <Link key={b.slug} href={`/brands/${b.slug}`} className="hover:text-fg">
@@ -151,14 +156,20 @@ export default function Home() {
           id="notes"
           className="mx-auto flex max-w-[1200px] scroll-mt-16 flex-col gap-4 pb-12 md:gap-7 md:px-6 md:pb-20"
         >
-          <div className="px-5 md:px-0">
+          <div className="flex items-end justify-between gap-4 px-5 md:px-0">
             <SectionHeading eyebrow="PAIRING NOTES" title="最新のペアリングノート" />
+            <Link
+              href="/notes"
+              className="flex-none py-3 text-sm font-bold text-accent hover:text-accent-soft md:text-[15px]"
+            >
+              すべて見る →
+            </Link>
           </div>
           <div className="flex gap-3 overflow-x-auto px-5 pb-1 md:grid md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:gap-5 md:overflow-visible md:px-0 md:pb-0">
             {notes.map((n) => (
               <NoteCard
                 key={n.slug}
-                href={`/brands/${n.brandSlug}#note`}
+                href={`/notes/${n.slug}`}
                 title={n.title}
                 brandName={getBrand(n.brandSlug)!.name}
                 foodName={getFood(n.foodSlug)!.name}

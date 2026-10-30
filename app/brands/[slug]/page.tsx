@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { Breadcrumbs, type Crumb } from "@/components/Breadcrumbs";
 import { Glyph, PhotoPlaceholder } from "@/components/ui";
 import {
   getBrand,
@@ -70,25 +71,16 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
           brands: getBrandsByCategory(category.id).filter((b) => b.slug !== brand.slug),
         };
 
+  const crumbs: Crumb[] = [
+    { label: "ホーム", href: "/" },
+    { label: category.name, href: "/#kinds" },
+    { label: sub.name, href: `/categories/${sub.id}` },
+    { label: brand.name },
+  ];
+
   return (
-    <div className="mx-auto flex max-w-[1200px] flex-col pb-10 md:gap-14 md:px-6 md:pb-20 md:pt-6">
-      <nav aria-label="パンくず" className="hidden text-sm text-muted md:block">
-        <ol className="flex flex-wrap gap-2">
-          <li>
-            <Link href="/" className="hover:text-fg">
-              ホーム
-            </Link>
-          </li>
-          <li aria-hidden="true">/</li>
-          <li>{category.name}</li>
-          <li aria-hidden="true">/</li>
-          <li>{sub.name}</li>
-          <li aria-hidden="true">/</li>
-          <li aria-current="page" className="text-fg">
-            {brand.name}
-          </li>
-        </ol>
-      </nav>
+    <div className="mx-auto flex max-w-[1200px] flex-col pb-10 md:gap-14 md:px-6 md:pb-20 md:pt-2">
+      <Breadcrumbs items={crumbs} className="hidden md:block" />
 
       {/* 銘柄 */}
       <section className="flex flex-col md:flex-row md:flex-wrap md:items-stretch md:gap-10">
@@ -97,9 +89,8 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
           className="h-[300px] md:h-auto md:min-h-[420px] md:min-w-0 md:flex-[1_1_320px] md:rounded-3xl"
         />
         <div className="flex min-w-0 flex-col justify-center gap-3.5 px-5 pb-8 pt-6 md:flex-[2_1_520px] md:gap-[18px] md:p-0">
-          <p className="text-xs text-muted md:hidden">
-            ホーム / {category.name} / {sub.name}
-          </p>
+          {/* モバイルは写真の下に、現在のページを除いて出す */}
+          <Breadcrumbs items={crumbs.slice(0, -1)} className="md:hidden" />
           <div className="flex items-center gap-2.5 md:gap-3">
             <Glyph char="阿" className="text-[34px] md:text-[44px]" />
             <span className="text-xs tracking-[0.2em] text-muted md:text-sm">
@@ -195,7 +186,9 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
           >
             <p className="text-xs font-bold tracking-[0.2em] text-accent md:text-sm">PAIRING NOTE</p>
             <h2 className="text-2xl font-black leading-[1.45] text-fg md:text-[34px] md:leading-[1.4]">
-              {note.title}
+              <Link href={`/notes/${note.slug}`} className="hover:text-accent-soft">
+                {note.title}
+              </Link>
             </h2>
             <p className="text-xs text-subtle md:text-sm">
               <time dateTime={note.publishedAt}>{note.publishedAt.replaceAll("-", ".")}</time> ・{" "}
