@@ -66,7 +66,7 @@ export default async function FoodPage({ params }: PageProps<"/foods/[slug]">) {
           const brand = getBrand(p.brandSlug)!;
           const serve = p.serveId ? getServeStyle(p.serveId)!.name : undefined;
           return (
-            <li key={p.brandSlug}>
+            <li key={p.id}>
               <Link
                 href={`/brands/${brand.slug}`}
                 className="grid grid-cols-[auto_1fr] items-center gap-x-3 gap-y-2 rounded-2xl border border-line bg-surface p-5 text-fg hover:border-line-strong md:grid-cols-[auto_minmax(0,280px)_1fr] md:gap-x-6 md:rounded-[20px] md:p-[26px]"

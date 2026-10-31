@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { NoteCard } from "@/components/NoteCard";
 import { Glyph, PairingBadge, PhotoPlaceholder } from "@/components/ui";
-import { getBrand, getFood, getNote, getNotes, getPairings, getSubCategory } from "@/lib/data";
+import { getBrand, getFood, getNote, getNotes, getPairings, getRelatedNotes, getSubCategory } from "@/lib/data";
+import { pairingId } from "@/lib/types";
 import { pageMetadata } from "@/lib/site";
 
 export function generateStaticParams() {
@@ -18,7 +20,7 @@ export async function generateMetadata({
   if (!note) return {};
   return pageMetadata({
     title: note.title,
-    description: note.quote,
+    description: note.lead ?? note.quote,
     path: `/notes/${note.slug}`,
     type: "article",
     image: `/notes/${note.slug}/opengraph-image`,
@@ -32,7 +34,11 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
 
   const brand = getBrand(note.brandSlug)!;
   const food = getFood(note.foodSlug)!;
-  const pairing = getPairings(brand.slug).find((p) => p.foodSlug === food.slug);
+  // 飲み方つきのノートはその飲み方のペアリング、なければ同じ肴の最初のもの
+  const pairing =
+    getPairings(brand.slug).find((p) => p.id === pairingId(brand.slug, food.slug, note.serveId)) ??
+    getPairings(brand.slug).find((p) => p.foodSlug === food.slug);
+  const related = getRelatedNotes(note.slug);
   const { default: Body } = await import(`@/content/notes/${note.slug}.mdx`);
 
   return (
@@ -107,6 +113,24 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
           )}
         </aside>
       </div>
+
+      {related.length > 0 && (
+        <section className="flex flex-col gap-4 border-t border-line pt-8 md:gap-6 md:pt-12">
+          <h2 className="text-xl font-black md:text-2xl">関連するノート</h2>
+          <ul className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
+            {related.map((n) => (
+              <li key={n.slug} className="grid">
+                <NoteCard
+                  href={`/notes/${n.slug}`}
+                  title={n.title}
+                  brandName={getBrand(n.brandSlug)!.name}
+                  foodName={getFood(n.foodSlug)!.name}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

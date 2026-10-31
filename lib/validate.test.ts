@@ -101,10 +101,31 @@ describe("validateContent", () => {
     );
   });
 
-  it("同じ銘柄 × 肴のペアリングは 1 つまで", () => {
+  it("同じ銘柄 × 肴 × 飲み方のペアリングは 1 つまで", () => {
     const c = fixture();
-    c.brands[0].pairings.push({ food: "kakuni", level: "good", why: "" });
-    expect(validateContent(c)).toContain("brand kuro: pairing food が重複しています: kakuni");
+    c.brands[0].pairings.push({ food: "kakuni", level: "good", serve: "oyuwari", why: "" });
+    expect(validateContent(c)).toContain("brand kuro: pairing が重複しています: kuro/kakuni@oyuwari");
+  });
+
+  it("同じ肴でも飲み方が違えば別のペアリングとして書ける", () => {
+    const c = fixture();
+    c.brands[0].pairings.push({ food: "kakuni", level: "good", serve: "rock", why: "" });
+    expect(validateContent(c)).toEqual([]);
+  });
+
+  it("ノートは登録済みのペアリングについて書く", () => {
+    const c = fixture();
+    c.notes.push({ ...c.notes[0], slug: "kuro-tempura", foodSlug: "tempura" });
+    c.notes.push({ ...c.notes[0], slug: "kuro-kakuni-rock", serveId: "rock" });
+    const errors = validateContent(c);
+    expect(errors).toContain("note kuro-tempura: ペアリング kuro/tempura が登録されていません");
+    expect(errors).toContain("note kuro-kakuni-rock: ペアリング kuro/kakuni@rock が登録されていません");
+  });
+
+  it("飲み方を書かないノートは、その銘柄 × 肴のどの飲み方でもよい", () => {
+    const c = fixture();
+    expect(c.notes[0].serveId).toBeUndefined();
+    expect(validateContent(c)).toEqual([]);
   });
 
   it("alsoIn は同じ大分類の、別の小分類だけ", () => {
