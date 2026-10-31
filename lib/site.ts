@@ -20,11 +20,14 @@ export function pageMetadata({
   description,
   path,
   type = "website",
+  image = "/opengraph-image",
 }: {
   title?: string;
   description?: string;
   path: string;
   type?: "website" | "article";
+  /** OGP 画像。ここで指定すると同じルートの opengraph-image より優先されるので、自前の画像があるページはその URL を渡す */
+  image?: string;
 }): Metadata {
   return {
     ...(title && { title }),
@@ -37,6 +40,8 @@ export function pageMetadata({
       siteName: SITE_NAME,
       locale: "ja_JP",
       type,
+      images: image,
     },
+    twitter: { card: "summary_large_image" },
   };
 }

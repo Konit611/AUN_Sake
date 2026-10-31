@@ -21,6 +21,7 @@ export async function generateMetadata({
     description: note.quote,
     path: `/notes/${note.slug}`,
     type: "article",
+    image: `/notes/${note.slug}/opengraph-image`,
   });
 }
 

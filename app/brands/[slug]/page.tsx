@@ -35,7 +35,12 @@ export async function generateMetadata({
   const { slug } = await params;
   const brand = getBrand(slug);
   if (!brand) return {};
-  return pageMetadata({ title: brand.name, description: brand.taste, path: `/brands/${brand.slug}` });
+  return pageMetadata({
+    title: brand.name,
+    description: brand.taste,
+    path: `/brands/${brand.slug}`,
+    image: `/brands/${brand.slug}/opengraph-image`,
+  });
 }
 
 export default async function BrandPage({ params }: PageProps<"/brands/[slug]">) {
