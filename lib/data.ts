@@ -65,27 +65,68 @@ const pairings: Pairing[] = brandInputs.flatMap((b) =>
 const byLevel = (a: Pairing, b: Pairing) =>
   PAIRING_LEVELS[a.level].order - PAIRING_LEVELS[b.level].order || a.order - b.order;
 
+// --- 索引 ---
+// 呼び出しのたびに配列全体を走査しないよう、モジュール読み込み時に一度だけ作る。
+// 返す配列は readonly（呼び出し側の sort などで共有データを壊さないため）。
+
+function groupBy<T>(items: readonly T[], keys: (item: T) => readonly string[]): Map<string, T[]> {
+  const map = new Map<string, T[]>();
+  for (const item of items) {
+    for (const key of keys(item)) {
+      const list = map.get(key);
+      if (list) list.push(item);
+      else map.set(key, [item]);
+    }
+  }
+  return map;
+}
+
+const NONE: readonly never[] = [];
+
+const categoryById = new Map(categories.map((c) => [c.id, c]));
+const subCategoriesByCategory = groupBy(subCategories, (s) => [s.categoryId]);
+const brandsByCategory = groupBy(brands, (b) => [b.categoryId]);
+/** alsoIn で載せている銘柄も含む */
+const brandsBySubCategory = groupBy(brands, (b) => [b.subCategoryId, ...(b.alsoIn ?? [])]);
+const pairingsByBrand = groupBy(pairings, (p) => [p.brandSlug]);
+const pairingsByFood = groupBy(pairings, (p) => [p.foodSlug]);
+for (const list of [...pairingsByBrand.values(), ...pairingsByFood.values()]) list.sort(byLevel);
+
+const sortedNotes = [...notes].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+const noteBySlug = new Map(notes.map((n) => [n.slug, n]));
+const notesByBrand = groupBy(sortedNotes, (n) => [n.brandSlug]);
+
 // --- 分類 ---
 
-export function getCategories(): Category[] {
+export function getCategories(): readonly Category[] {
   return categories;
 }
 
 export function getCategory(id: string): Category | undefined {
-  return categories.find((c) => c.id === id);
+  return categoryById.get(id as CategoryId);
 }
 
-export function getSubCategories(categoryId?: CategoryId): SubCategory[] {
-  return categoryId ? subCategories.filter((s) => s.categoryId === categoryId) : subCategories;
+export function getSubCategories(categoryId?: CategoryId): readonly SubCategory[] {
+  return categoryId ? (subCategoriesByCategory.get(categoryId) ?? NONE) : subCategories;
 }
 
 export function getSubCategory(id: string): SubCategory | undefined {
   return subCategoryById.get(id);
 }
 
+/** 銘柄が 1 つ以上ある大分類 */
+export function getCategoriesWithBrands(): readonly Category[] {
+  return categories.filter((c) => brandsByCategory.has(c.id));
+}
+
+/** 銘柄が 1 つ以上ある小分類（ページを作るのはこれだけ） */
+export function getSubCategoriesWithBrands(categoryId?: CategoryId): readonly SubCategory[] {
+  return getSubCategories(categoryId).filter((s) => brandsBySubCategory.has(s.id));
+}
+
 // --- 銘柄 ---
 
-export function getBrands(): Brand[] {
+export function getBrands(): readonly Brand[] {
   return brands;
 }
 
@@ -93,22 +134,20 @@ export function getBrand(slug: string): Brand | undefined {
   return brandBySlug.get(slug);
 }
 
-export function getBrandsByCategory(categoryId: CategoryId): Brand[] {
-  return brands.filter((b) => b.categoryId === categoryId);
+export function getBrandsByCategory(categoryId: CategoryId): readonly Brand[] {
+  return brandsByCategory.get(categoryId) ?? NONE;
 }
 
 /** alsoIn で載せている銘柄も含む */
-export function getBrandsBySubCategory(subCategoryId: string): Brand[] {
-  return brands.filter(
-    (b) => b.subCategoryId === subCategoryId || b.alsoIn?.includes(subCategoryId),
-  );
+export function getBrandsBySubCategory(subCategoryId: string): readonly Brand[] {
+  return brandsBySubCategory.get(subCategoryId) ?? NONE;
 }
 
 /** 同じ小分類のほかの銘柄 */
-export function getRelatedBrands(slug: string): Brand[] {
+export function getRelatedBrands(slug: string): readonly Brand[] {
   const brand = brandBySlug.get(slug);
-  if (!brand) return [];
-  return brands.filter((b) => b.subCategoryId === brand.subCategoryId && b.slug !== slug);
+  if (!brand) return NONE;
+  return getBrandsBySubCategory(brand.subCategoryId).filter((b) => b.slug !== slug);
 }
 
 // --- 飲み方・肴 ---
@@ -127,7 +166,7 @@ export function getRecommendedServe(brand: Brand): BrandServe {
   return brand.serves.find((s) => s.serveId === brand.recommendedServe)!;
 }
 
-export function getFoods(): Food[] {
+export function getFoods(): readonly Food[] {
   return foods;
 }
 
@@ -135,49 +174,48 @@ export function getFood(slug: string): Food | undefined {
   return foodBySlug.get(slug);
 }
 
+/** ペアリングがある肴（ページを作るのはこれだけ） */
+export function getFoodsWithPairings(): readonly Food[] {
+  return foods.filter((f) => pairingsByFood.has(f.slug));
+}
+
 /** 銘柄の肴ジャンル。ペアリングした肴の genres を合わせたもの */
 export function getBrandFoodGenres(brandSlug: string): FoodGenre[] {
-  const genres = new Set(
-    pairings
-      .filter((p) => p.brandSlug === brandSlug)
-      .flatMap((p) => foodBySlug.get(p.foodSlug)!.genres),
-  );
+  const genres = new Set(getPairings(brandSlug).flatMap((p) => foodBySlug.get(p.foodSlug)!.genres));
   return FOOD_GENRES.filter((g) => genres.has(g));
 }
 
 // --- ペアリング ---
 
 /** 阿吽 → 好相性 → 意外 の順 */
-export function getPairings(brandSlug: string): Pairing[] {
-  return pairings.filter((p) => p.brandSlug === brandSlug).sort(byLevel);
+export function getPairings(brandSlug: string): readonly Pairing[] {
+  return pairingsByBrand.get(brandSlug) ?? NONE;
 }
 
 /** 銘柄ページの「飲み方別、息の合う肴」。銘柄の serves の順 */
-export function getServePairings(brandSlug: string): Pairing[] {
+export function getServePairings(brandSlug: string): readonly Pairing[] {
   const brand = brandBySlug.get(brandSlug);
-  if (!brand) return [];
-  return brand.serves.flatMap((s) =>
-    pairings.filter((p) => p.brandSlug === brandSlug && p.serveId === s.serveId).sort(byLevel),
-  );
+  if (!brand) return NONE;
+  const list = getPairings(brandSlug);
+  return brand.serves.flatMap((s) => list.filter((p) => p.serveId === s.serveId));
 }
 
 /** 肴 → 銘柄の逆引き */
-export function getPairingsByFood(foodSlug: string): Pairing[] {
-  return pairings.filter((p) => p.foodSlug === foodSlug).sort(byLevel);
+export function getPairingsByFood(foodSlug: string): readonly Pairing[] {
+  return pairingsByFood.get(foodSlug) ?? NONE;
 }
 
 // --- ペアリングノート ---
 
-const sortedNotes = [...notes].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-
-export function getNotes(): PairingNote[] {
+/** 新しい順 */
+export function getNotes(): readonly PairingNote[] {
   return sortedNotes;
 }
 
 export function getNote(slug: string): PairingNote | undefined {
-  return notes.find((n) => n.slug === slug);
+  return noteBySlug.get(slug);
 }
 
-export function getNotesByBrand(brandSlug: string): PairingNote[] {
-  return sortedNotes.filter((n) => n.brandSlug === brandSlug);
+export function getNotesByBrand(brandSlug: string): readonly PairingNote[] {
+  return notesByBrand.get(brandSlug) ?? NONE;
 }

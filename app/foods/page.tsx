@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ShowMore } from "@/components/ShowMore";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PairingBadge, SectionHeading } from "@/components/ui";
-import { getBrand, getFoods, getPairingsByFood } from "@/lib/data";
+import { getBrand, getFoodsWithPairings, getPairingsByFood } from "@/lib/data";
 import { pageMetadata } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({
@@ -12,9 +13,7 @@ export const metadata: Metadata = pageMetadata({
 });
 
 export default function FoodsPage() {
-  const foods = getFoods()
-    .map((f) => ({ ...f, pairings: getPairingsByFood(f.slug) }))
-    .filter((f) => f.pairings.length > 0);
+  const foods = getFoodsWithPairings().map((f) => ({ ...f, pairings: getPairingsByFood(f.slug) }));
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-5 pb-12 pt-2 md:gap-10 md:px-6 md:pb-20">
@@ -23,7 +22,7 @@ export default function FoodsPage() {
         <SectionHeading as="h1" eyebrow="BY FOOD" title="肴から、息の合う酒を探す" />
         <p className="text-sm text-muted md:text-[15px]">{foods.length}品</p>
       </div>
-      <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] md:gap-4">
+      <ShowMore className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-[repeat(auto-fill,minmax(260px,1fr))] md:gap-4">
         {foods.map((f) => {
           // getPairingsByFood は 阿吽 → 好相性 → 意外 の順
           const best = f.pairings[0];
@@ -45,7 +44,7 @@ export default function FoodsPage() {
             </li>
           );
         })}
-      </ul>
+      </ShowMore>
     </div>
   );
 }

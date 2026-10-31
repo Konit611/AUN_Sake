@@ -21,6 +21,8 @@ export type FinderBrand = {
 export type FinderCategory = {
   id: string;
   name: string;
+  /** brands は先頭の一部。total がそれより多ければ「すべて見る」を出す */
+  total: number;
   brands: FinderBrand[];
 };
 
@@ -35,6 +37,8 @@ export function PairFinder({ categories }: { categories: FinderCategory[] }) {
   const [brandSlug, setBrandSlug] = useState(cat.brands[0].slug);
   const cur = cat.brands.find((b) => b.slug === brandSlug) ?? cat.brands[0];
 
+  const segmented = categories.length <= 4;
+
   const pickCategory = (id: string) => {
     const next = categories.find((c) => c.id === id)!;
     setCatId(id);
@@ -45,12 +49,14 @@ export function PairFinder({ categories }: { categories: FinderCategory[] }) {
     <div className="flex flex-col gap-5 md:gap-8">
       <div className="flex flex-col gap-3.5">
         <p className="hidden text-sm font-medium text-muted md:block">1. 種類</p>
-        {/* モバイルはセグメント、PC はピル */}
+        {/* モバイルはセグメント（4 種類まで。それ以上は幅が足りないので横スクロール）、PC はピル */}
         <div
           role="group"
           aria-label="お酒の種類"
-          style={{ gridTemplateColumns: `repeat(${categories.length}, minmax(0, 1fr))` }}
-          className="mx-5 grid gap-1 rounded-[14px] bg-bg p-1 md:mx-0 md:flex md:flex-wrap md:gap-2 md:bg-transparent md:p-0"
+          style={segmented ? { gridTemplateColumns: `repeat(${categories.length}, minmax(0, 1fr))` } : undefined}
+          className={`mx-5 gap-1 rounded-[14px] bg-bg p-1 md:mx-0 md:flex md:flex-wrap md:gap-2 md:bg-transparent md:p-0 ${
+            segmented ? "grid" : "flex overflow-x-auto"
+          }`}
         >
           {categories.map((c) => {
             const on = c.id === cat.id;
@@ -60,7 +66,7 @@ export function PairFinder({ categories }: { categories: FinderCategory[] }) {
                 type="button"
                 aria-pressed={on}
                 onClick={() => pickCategory(c.id)}
-                className={`min-h-11 cursor-pointer rounded-[10px] text-[15px] md:rounded-full md:border-2 md:px-5 md:py-2.5 md:text-base ${
+                className={`min-h-11 flex-none cursor-pointer rounded-[10px] text-[15px] md:rounded-full ${segmented ? "" : "px-4"} md:border-2 md:px-5 md:py-2.5 md:text-base ${
                   on
                     ? "bg-accent font-bold text-bg md:border-accent"
                     : "font-medium text-fg md:border-line-strong md:hover:border-subtle"
@@ -95,6 +101,14 @@ export function PairFinder({ categories }: { categories: FinderCategory[] }) {
               </button>
             );
           })}
+          {cat.total > cat.brands.length && (
+            <Link
+              href={`/brands?kind=${cat.id}`}
+              className={`${pill} flex items-center border-dashed border-line-strong font-medium text-accent hover:border-accent`}
+            >
+              すべての{cat.name}（{cat.total}）→
+            </Link>
+          )}
         </div>
       </div>
 

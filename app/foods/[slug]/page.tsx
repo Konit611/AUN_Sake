@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ShowMore } from "@/components/ShowMore";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { NoteCard } from "@/components/NoteCard";
 import { Glyph, PairingBadge, SectionHeading } from "@/components/ui";
 import {
   getBrand,
   getFood,
-  getFoods,
+  getFoodsWithPairings,
   getNotes,
   getPairingsByFood,
   getServeStyle,
@@ -16,9 +17,7 @@ import {
 import { pageMetadata } from "@/lib/site";
 
 export function generateStaticParams() {
-  return getFoods()
-    .filter((f) => getPairingsByFood(f.slug).length > 0)
-    .map((f) => ({ slug: f.slug }));
+  return getFoodsWithPairings().map((f) => ({ slug: f.slug }));
 }
 
 export async function generateMetadata({
@@ -62,7 +61,7 @@ export default async function FoodPage({ params }: PageProps<"/foods/[slug]">) {
         </div>
       </div>
 
-      <ul className="flex flex-col gap-4 md:gap-5">
+      <ShowMore className="flex flex-col gap-4 md:gap-5">
         {pairings.map((p) => {
           const brand = getBrand(p.brandSlug)!;
           const serve = p.serveId ? getServeStyle(p.serveId)!.name : undefined;
@@ -87,7 +86,7 @@ export default async function FoodPage({ params }: PageProps<"/foods/[slug]">) {
             </li>
           );
         })}
-      </ul>
+      </ShowMore>
 
       {notes.length > 0 && (
         <section className="flex flex-col gap-4 md:gap-6">

@@ -25,6 +25,9 @@ const CHART_LABELS: Record<keyof TasteChart, string> = {
   koku: "コク",
 };
 
+// 「ほかの○○」に並べる数。残りは分類ページへ
+const RELATED_LIMIT = 6;
+
 export function generateStaticParams() {
   return getBrands().map((b) => ({ slug: b.slug }));
 }
@@ -72,10 +75,11 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
   const sameSub = getRelatedBrands(brand.slug);
   const related =
     sameSub.length > 0
-      ? { label: `ほかの${sub.name}`, brands: sameSub }
+      ? { label: `ほかの${sub.name}`, brands: sameSub, href: `/categories/${sub.id}` }
       : {
           label: `ほかの${category.name}`,
           brands: getBrandsByCategory(category.id).filter((b) => b.slug !== brand.slug),
+          href: `/categories/${category.id}`,
         };
 
   const crumbs: Crumb[] = [
@@ -223,7 +227,7 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
             className="flex min-w-0 flex-col gap-2.5 px-5 md:flex-[1_1_300px] md:gap-3 md:p-0"
           >
             <h2 className="text-base font-bold">{related.label}</h2>
-            {related.brands.map((b) => (
+            {related.brands.slice(0, RELATED_LIMIT).map((b) => (
               <Link
                 key={b.slug}
                 href={`/brands/${b.slug}`}
@@ -235,6 +239,14 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
                 </span>
               </Link>
             ))}
+            {related.brands.length > RELATED_LIMIT && (
+              <Link
+                href={related.href}
+                className="py-2 text-sm font-bold text-accent hover:text-accent-soft"
+              >
+                すべて見る（{related.brands.length}）→
+              </Link>
+            )}
           </aside>
         )}
       </section>
