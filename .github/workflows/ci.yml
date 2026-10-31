@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# 同じブランチの古い実行は止める
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      # Dockerfile（node:24-alpine）と同じメジャーバージョン
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      # content/ の検証と lib/ のロジック
+      - run: npm test
+      # 全ページ・OGP 画像の静的生成まで通るか（next/font が Google Fonts を取りに行く）
+      - run: npm run build
+
+  docker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      # 本番と同じイメージが作れるか。push はしない
+      - run: docker build --build-arg SITE_URL=https://example.com -t aun-sake:ci .

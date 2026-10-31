@@ -2,6 +2,13 @@
 
 import Link from "next/link";
 import { useMemo, useState, useSyncExternalStore } from "react";
+import {
+  EMPTY_FILTERS,
+  filterBrands,
+  filtersToSearch,
+  parseFilters,
+  type BrandFilters,
+} from "@/lib/brand-filter";
 import { normalize } from "@/lib/search";
 import type { CategoryId, FoodGenre, TasteKeyword } from "@/lib/types";
 import { FOOD_GENRES, TASTE_KEYWORDS } from "@/lib/types";
@@ -28,10 +35,6 @@ export type ExplorerKind = { id: CategoryId; name: string; kana?: string };
 // 一度に描画するカードの数。「もっと見る」でこの数ずつ足す
 const PAGE_SIZE = 24;
 
-type Filters = { q: string; kind: string; taste: string; food: string };
-
-const EMPTY: Filters = { q: "", kind: "all", taste: "", food: "" };
-
 // 条件は URL（?q=&kind=&taste=&food=）が正。サーバーでは常に条件なし＝全銘柄を描画して HTML に一覧を残す
 const URL_CHANGE = "aun:brands-filter";
 function subscribe(onChange: () => void) {
@@ -40,16 +43,6 @@ function subscribe(onChange: () => void) {
   return () => {
     window.removeEventListener("popstate", onChange);
     window.removeEventListener(URL_CHANGE, onChange);
-  };
-}
-
-function parse(search: string): Filters {
-  const p = new URLSearchParams(search);
-  return {
-    q: p.get("q") ?? EMPTY.q,
-    kind: p.get("kind") ?? EMPTY.kind,
-    taste: p.get("taste") ?? EMPTY.taste,
-    food: p.get("food") ?? EMPTY.food,
   };
 }
 
@@ -143,7 +136,8 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
     () => window.location.search,
     () => "",
   );
-  const f = parse(search);
+  const kindIds = useMemo(() => kinds.map((k) => k.id), [kinds]);
+  const f = parseFilters(search, kindIds);
 
   const kindById = useMemo(() => new Map(kinds.map((k) => [k.id, k])), [kinds]);
   // 検索対象：名前・よみ・蔵元・産地・分類（サーバーから送らずにここで一度だけ作る）
@@ -163,28 +157,16 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
   const shown = page.search === search ? page.shown : PAGE_SIZE;
   const [filterOpen, setFilterOpen] = useState(false);
 
-  const update = (patch: Partial<Filters>) => {
-    const next = { ...f, ...patch };
+  const update = (patch: Partial<BrandFilters>) => {
     // 履歴は積まずに URL を書き換えて、購読側に知らせる
-    const qs = new URLSearchParams();
-    (Object.keys(next) as (keyof Filters)[]).forEach((k) => {
-      if (next[k] !== EMPTY[k]) qs.set(k, next[k]);
-    });
-    const s = qs.toString();
-    window.history.replaceState(null, "", s ? `/brands?${s}` : "/brands");
+    const next = filtersToSearch({ ...f, ...patch });
+    window.history.replaceState(null, "", `${window.location.pathname}${next}`);
     window.dispatchEvent(new Event(URL_CHANGE));
   };
   // 味わい・肴はもう一度押すと解除
   const toggle = (key: "taste" | "food", id: string) => update({ [key]: f[key] === id ? "" : id });
 
-  const terms = f.q.split(/\s+/).map(normalize).filter(Boolean);
-  const results = brands.filter(
-    (b) =>
-      (f.kind === "all" || b.kind === f.kind) &&
-      (!f.taste || b.tastes.includes(f.taste as TasteKeyword)) &&
-      (!f.food || b.genres.includes(f.food as FoodGenre)) &&
-      terms.every((t) => haystacks.get(b.slug)!.includes(t)),
-  );
+  const results = filterBrands(brands, f, (b) => haystacks.get(b.slug)!);
 
   const kindItems = [{ id: "all", name: "すべて" }, ...kinds];
   const tasteItems = TASTE_KEYWORDS.map((t) => ({ id: t, name: t }));
@@ -203,7 +185,7 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
       </div>
       <button
         type="button"
-        onClick={() => update(EMPTY)}
+        onClick={() => update(EMPTY_FILTERS)}
         className="min-h-11 cursor-pointer rounded-xl border border-line-strong text-sm text-muted hover:text-fg"
       >
         条件をクリア

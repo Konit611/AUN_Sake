@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/ && node .next/standalone/server.js",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
@@ -19,12 +22,13 @@
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
-    "@types/node": "^20",
+    "@types/node": "^24.19.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.4.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^5.0.5"
   }
 }
