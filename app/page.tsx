@@ -62,6 +62,8 @@ export default function Home() {
 
   return (
     <>
+      {/* モバイルのヘッダーをホーム用の形にする目印（components/SiteHeader.tsx） */}
+      <span data-page="home" hidden />
       {/* ヒーロー */}
       <section className="mx-auto flex max-w-[1200px] flex-col gap-5 px-5 pb-9 pt-10 md:flex-row md:flex-wrap md:items-center md:gap-12 md:px-6 md:pb-16 md:pt-20">
         <div className="flex min-w-0 flex-col gap-5 md:flex-[1_1_460px] md:gap-[22px]">
