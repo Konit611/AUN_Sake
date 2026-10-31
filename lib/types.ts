@@ -111,7 +111,10 @@ export type PairingInput = {
   food: string;
   level: PairingLevel;
   why: string;
-  /** あれば銘柄ページの「飲み方別、息の合う肴」に出る */
+  /**
+   * 飲み方。あれば銘柄ページの「飲み方別、息の合う肴」に出る。
+   * 同じ肴でも飲み方が違えば別のペアリングとして書ける（銘柄 × 肴 × 飲み方 で 1 つ）
+   */
   serve?: string;
 };
 
@@ -120,6 +123,8 @@ export type Brand = Omit<BrandInput, "pairings"> & {
 };
 
 export type Pairing = {
+  /** 銘柄 × 肴 × 飲み方で一意。pairingId() で作る（DB に移したときの主キーの候補） */
+  id: string;
   brandSlug: string;
   foodSlug: string;
   level: PairingLevel;
@@ -132,10 +137,21 @@ export type Pairing = {
 export type PairingNote = {
   slug: string;
   title: string;
+  /** 銘柄 × 肴（× 飲み方）は登録済みのペアリングであること */
   brandSlug: string;
   foodSlug: string;
+  serveId?: string;
   publishedAt: string;
   author: string;
+  /** 2〜3 文の要約。銘柄ページの抜粋・一覧・meta description に使う */
+  lead?: string;
   quote?: string;
   heroImage?: string;
+  /** true の間はどこにも出さない（先に書いておいて、公開日に外す） */
+  draft?: boolean;
 };
+
+/** 銘柄 × 肴 × 飲み方 */
+export function pairingId(brandSlug: string, foodSlug: string, serveId?: string): string {
+  return serveId ? `${brandSlug}/${foodSlug}@${serveId}` : `${brandSlug}/${foodSlug}`;
+}

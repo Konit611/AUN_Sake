@@ -8,6 +8,11 @@ export const SITE_URL = new URL(process.env.SITE_URL ?? "http://localhost:3000")
 
 export const SITE_NAME = "AUN";
 export const SITE_TITLE = "AUN — 酒と肴の、阿吽の呼吸。";
+
+/** ノートの RSS（<link rel="alternate">）。alternates は子で上書きされるので pageMetadata でも付ける */
+export const FEED_ALTERNATES = {
+  "application/rss+xml": [{ url: "/notes/feed.xml", title: "AUN ペアリングノート" }],
+};
 export const SITE_DESCRIPTION =
   "一本の酒と一皿の肴が息を合わせる瞬間を、銘柄ごとに紹介します。";
 
@@ -32,7 +37,7 @@ export function pageMetadata({
   return {
     ...(title && { title }),
     description: description ?? SITE_DESCRIPTION,
-    alternates: { canonical: path },
+    alternates: { canonical: path, types: FEED_ALTERNATES },
     openGraph: {
       title: title ? `${title} | ${SITE_NAME}` : SITE_TITLE,
       description: description ?? SITE_DESCRIPTION,

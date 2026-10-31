@@ -82,7 +82,8 @@ content/
   recommendedServe: "rock",           // serves 중 하나
   pairings: [
     // level: "aun"(阿吽) | "good"(好相性) | "surprise"(意外)
-    // serve 를 넣으면 브랜드 페이지 「飲み方別、息の合う肴」에 나온다
+    // serve 를 넣으면 브랜드 페이지 「飲み方別、息の合う肴」에 나온다.
+    // 같은 안주라도 serve 가 다르면 따로 쓸 수 있다 (예: 角煮를 お湯割り와 ロック으로 각각 평가)
     { food: "buta-kakuni", level: "aun", serve: "rock", why: "…" },
   ],
   avoid: "…",                         // 선택. 「息が合いにくい」
@@ -92,12 +93,16 @@ content/
 브랜드는 추가하는 순간 홈, 분류, 안주, 검색, sitemap에 모두 반영된다.
 소분류·안주 페이지는 연결된 브랜드가 있을 때만 생성된다.
 
-### 기사 추가
+### 기사 추가 (주 1회)
 
-1. `content/notes.ts`에 메타데이터를 추가한다 (`brandSlug`, `foodSlug`는 실제로 있는 것).
+1. `content/notes.ts`에 메타데이터를 추가한다.
+   - `brandSlug` × `foodSlug`(× `serveId`)는 **등록된 궁합**이어야 한다 (아니면 테스트·빌드 실패).
+   - `lead`: 2–3문장 요약. 브랜드 페이지의 발췌, 기사 목록, RSS, 검색 결과 설명에 쓰인다.
+   - 미리 써 둘 때는 `draft: true`. 공개일에 이 줄을 지우는 PR을 머지한다.
 2. 같은 slug로 `content/notes/<slug>.mdx`에 본문을 쓴다.
 
-브랜드 페이지에는 그 브랜드의 최신 기사가 전문으로 나온다.
+본문은 기사 페이지에만 나온다. 브랜드 페이지에는 최신 기사의 발췌와 다른 기사 목록,
+기사 페이지에는 관련 기사(같은 브랜드 → 같은 안주)가 나온다. RSS는 `/notes/feed.xml`.
 
 ## 배포 (Docker)
 
@@ -113,3 +118,4 @@ SITE_URL=https://example.com docker compose up -d --build
 ## 문서
 
 - [docs/plan/data-structure.md](docs/plan/data-structure.md) — 데이터 구조와 검증 규칙
+- [docs/plan/db-migration.md](docs/plan/db-migration.md) — DB 이전 계획 (테이블, 제약, 순서)

@@ -14,6 +14,7 @@ import {
   getNotes,
   getPairings,
   getRecommendedServe,
+  getServeStyle,
   getSubCategories,
   getSubCategory,
 } from "@/lib/data";
@@ -44,11 +45,17 @@ export default function Home() {
         tags: b.tags,
         serve: formatServe(getRecommendedServe(b)),
         avoid: b.avoid,
-        pairs: getPairings(b.slug).map((p) => ({
+        pairs: getPairings(b.slug).map((p, _, all) => ({
+          id: p.id,
           food: getFood(p.foodSlug)!.name,
           foodSlug: p.foodSlug,
           level: p.level,
           why: p.why,
+          // 同じ肴が飲み方違いで複数あるときだけ、どの飲み方の話かを添える
+          serve:
+            p.serveId && all.filter((x) => x.foodSlug === p.foodSlug).length > 1
+              ? getServeStyle(p.serveId)!.name
+              : undefined,
         })),
       })),
     };

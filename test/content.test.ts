@@ -12,6 +12,7 @@ import {
   getPairings,
   getPairingsByFood,
   getRelatedBrands,
+  getRelatedNotes,
   getSubCategoriesWithBrands,
 } from "@/lib/data";
 import { PAIRING_LEVELS } from "@/lib/types";
@@ -32,6 +33,17 @@ describe("content/", () => {
   it("どの銘柄にもペアリングが 1 つ以上ある（ページと「吽」カードが空にならない）", () => {
     for (const b of getBrands()) {
       expect(getPairings(b.slug).length, b.slug).toBeGreaterThan(0);
+    }
+  });
+
+  it("ペアリングの id は重ならない", () => {
+    const ids = getBrands().flatMap((b) => getPairings(b.slug).map((p) => p.id));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("関連ノートに自分は入らない", () => {
+    for (const n of getNotes()) {
+      expect(getRelatedNotes(n.slug).map((x) => x.slug)).not.toContain(n.slug);
     }
   });
 

@@ -66,10 +66,8 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
     };
   });
 
-  const note = getNotesByBrand(brand.slug)[0];
-  const NoteBody = note
-    ? (await import(`@/content/notes/${note.slug}.mdx`)).default
-    : null;
+  // 本文はノートのページにだけ置き、ここは最新の 1 本の抜粋（同じ本文が 2 か所に出ないように）
+  const [note, ...olderNotes] = getNotesByBrand(brand.slug);
 
   // 同じ小分類がなければ、同じ大分類から
   const sameSub = getRelatedBrands(brand.slug);
@@ -185,7 +183,7 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
 
       {/* ペアリングノート + ほかの銘柄 */}
       <section className="flex flex-col md:flex-row md:flex-wrap md:items-start md:gap-12 md:border-t md:border-line md:pt-12">
-        {note && NoteBody && (
+        {note && (
           <article
             id="note"
             className="flex min-w-0 scroll-mt-16 flex-col gap-4 px-5 py-9 text-base leading-[1.95] text-fg-2 md:flex-[999_1_560px] md:gap-[22px] md:p-0 md:text-lg"
@@ -200,13 +198,37 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
               <time dateTime={note.publishedAt}>{note.publishedAt.replaceAll("-", ".")}</time> ・{" "}
               {note.author}
             </p>
-            <div className="flex flex-col gap-4 md:gap-[22px]">
-              <NoteBody />
-            </div>
+            {note.lead && <p>{note.lead}</p>}
             {note.quote && (
               <div className="flex flex-col gap-1 rounded-[14px] bg-surface px-[18px] py-4 md:gap-1.5 md:rounded-2xl md:px-6 md:py-[22px]">
                 <p className="text-[13px] font-bold text-accent md:text-sm">阿吽のひとこと</p>
                 <p className="text-fg">{note.quote}</p>
+              </div>
+            )}
+            <Link
+              href={`/notes/${note.slug}`}
+              className="self-start py-2 text-[15px] font-bold text-accent hover:text-accent-soft"
+            >
+              続きを読む →
+            </Link>
+            {olderNotes.length > 0 && (
+              <div className="flex flex-col gap-2 border-t border-line pt-5">
+                <h3 className="text-sm font-bold text-fg md:text-base">{brand.name}のほかのノート</h3>
+                <ul className="flex flex-col">
+                  {olderNotes.slice(0, 5).map((n) => (
+                    <li key={n.slug}>
+                      <Link
+                        href={`/notes/${n.slug}`}
+                        className="flex min-h-11 items-baseline justify-between gap-4 py-2 text-[15px] text-fg hover:text-accent-soft"
+                      >
+                        <span>{n.title}</span>
+                        <time dateTime={n.publishedAt} className="flex-none text-xs text-subtle">
+                          {n.publishedAt.replaceAll("-", ".")}
+                        </time>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               </div>
             )}
           </article>

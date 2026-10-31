@@ -1,11 +1,12 @@
-import type {
-  BrandInput,
-  Category,
-  Food,
-  PairingNote,
-  ServeStyle,
-  SubCategory,
-  TasteChart,
+import {
+  pairingId,
+  type BrandInput,
+  type Category,
+  type Food,
+  type PairingNote,
+  type ServeStyle,
+  type SubCategory,
+  type TasteChart,
 } from "./types";
 
 type Content = {
@@ -91,7 +92,8 @@ export function validateContent(c: Content): string[] {
       errors.push(`${at}: recommendedServe "${b.recommendedServe}" が serves にありません`);
     }
 
-    checkDup(`${at}: pairing food`, b.pairings.map((p) => p.food));
+    // 同じ肴でも飲み方が違えば別のペアリング
+    checkDup(`${at}: pairing`, b.pairings.map((p) => pairingId(b.slug, p.food, p.serve)));
     for (const p of b.pairings) {
       if (!foodSlugs.has(p.food)) errors.push(`${at}: food "${p.food}" がありません`);
       if (p.serve && !brandServes.has(p.serve)) {
@@ -108,10 +110,20 @@ export function validateContent(c: Content): string[] {
     }
   }
 
+  const pairingIds = new Set(
+    c.brands.flatMap((b) => b.pairings.map((p) => pairingId(b.slug, p.food, p.serve))),
+  );
+  // 飲み方を書かないノートは、その銘柄 × 肴のどれかのペアリングがあればよい
+  const brandFoods = new Set(c.brands.flatMap((b) => b.pairings.map((p) => pairingId(b.slug, p.food))));
+
   for (const n of c.notes) {
     const at = `note ${n.slug}`;
     if (!brandSlugs.has(n.brandSlug)) errors.push(`${at}: brandSlug "${n.brandSlug}" がありません`);
     if (!foodSlugs.has(n.foodSlug)) errors.push(`${at}: foodSlug "${n.foodSlug}" がありません`);
+    const id = pairingId(n.brandSlug, n.foodSlug, n.serveId);
+    if (n.serveId ? !pairingIds.has(id) : !brandFoods.has(id)) {
+      errors.push(`${at}: ペアリング ${id} が登録されていません`);
+    }
     if (Number.isNaN(Date.parse(n.publishedAt))) {
       errors.push(`${at}: publishedAt "${n.publishedAt}" が日付ではありません`);
     }

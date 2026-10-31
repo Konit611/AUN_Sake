@@ -3,7 +3,7 @@ import { Zen_Antique, Zen_Kaku_Gothic_New } from "next/font/google";
 import { Suspense } from "react";
 import { HeaderView, SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
+import { FEED_ALTERNATES, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // 日本語フォントは unicode-range で数百ファイルに分かれるので preload しない
@@ -37,6 +37,7 @@ export const metadata: Metadata = {
   },
   // 画像は各ルートの opengraph-image.tsx（X は og:image を使う）
   twitter: { card: "summary_large_image" },
+  alternates: { types: FEED_ALTERNATES },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

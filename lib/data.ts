@@ -12,6 +12,7 @@ import { validateContent } from "./validate";
 import {
   FOOD_GENRES,
   PAIRING_LEVELS,
+  pairingId,
   type Brand,
   type BrandInput,
   type BrandServe,
@@ -53,6 +54,7 @@ const brandBySlug = new Map(brands.map((b) => [b.slug, b]));
 
 const pairings: Pairing[] = brandInputs.flatMap((b) =>
   b.pairings.map((p, i) => ({
+    id: pairingId(b.slug, p.food, p.serve),
     brandSlug: b.slug,
     foodSlug: p.food,
     level: p.level,
@@ -92,8 +94,10 @@ const pairingsByBrand = groupBy(pairings, (p) => [p.brandSlug]);
 const pairingsByFood = groupBy(pairings, (p) => [p.foodSlug]);
 for (const list of [...pairingsByBrand.values(), ...pairingsByFood.values()]) list.sort(byLevel);
 
-const sortedNotes = [...notes].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-const noteBySlug = new Map(notes.map((n) => [n.slug, n]));
+// draft のノートはページも一覧も作らない（検証だけはする）
+const publishedNotes = notes.filter((n) => !n.draft);
+const sortedNotes = [...publishedNotes].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
+const noteBySlug = new Map(publishedNotes.map((n) => [n.slug, n]));
 const notesByBrand = groupBy(sortedNotes, (n) => [n.brandSlug]);
 
 // --- 分類 ---
@@ -218,4 +222,15 @@ export function getNote(slug: string): PairingNote | undefined {
 
 export function getNotesByBrand(brandSlug: string): readonly PairingNote[] {
   return notesByBrand.get(brandSlug) ?? NONE;
+}
+
+/** 同じ銘柄か同じ肴のノート（自分は除く）。同じ銘柄を先に、それぞれ新しい順 */
+export function getRelatedNotes(slug: string, limit = 3): readonly PairingNote[] {
+  const note = noteBySlug.get(slug);
+  if (!note) return NONE;
+  const sameBrand = sortedNotes.filter((n) => n.brandSlug === note.brandSlug && n.slug !== slug);
+  const sameFood = sortedNotes.filter(
+    (n) => n.foodSlug === note.foodSlug && n.brandSlug !== note.brandSlug,
+  );
+  return [...sameBrand, ...sameFood].slice(0, limit);
 }
