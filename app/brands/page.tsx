@@ -25,27 +25,29 @@ export const metadata: Metadata = pageMetadata({
   locale,
 });
 
-export default function BrandsPage() {
-  const brands: ExplorerBrand[] = getBrands().map((b) => {
-    const sub = getSubCategory(b.subCategoryId)!;
-    const best = getPairings(b.slug)[0];
-    return {
-      slug: b.slug,
-      name: b.name,
-      kana: b.kana,
-      kind: b.categoryId,
-      sub: sub.name,
-      subKana: sub.kana,
-      maker: b.maker,
-      makerKana: getMaker(b.makerId)!.kana,
-      region: b.region,
-      regionKana: getRegion(b.regionId)!.kana,
-      tastes: b.tastes,
-      genres: getBrandFoodGenres(b.slug),
-      pair: best && getFood(best.foodSlug)!.name,
-    };
-  });
-  const kinds: ExplorerKind[] = getCategoriesWithBrands().map((c) => ({
+export default async function BrandsPage() {
+  const brands: ExplorerBrand[] = await Promise.all(
+    (await getBrands(locale)).map(async (b) => {
+      const sub = (await getSubCategory(b.subCategoryId, locale))!;
+      const best = (await getPairings(b.slug, locale))[0];
+      return {
+        slug: b.slug,
+        name: b.name,
+        kana: b.kana,
+        kind: b.categoryId,
+        sub: sub.name,
+        subKana: sub.kana,
+        maker: b.maker,
+        makerKana: (await getMaker(b.makerId, locale))!.kana,
+        region: b.region,
+        regionKana: (await getRegion(b.regionId, locale))!.kana,
+        tastes: b.tastes,
+        genres: await getBrandFoodGenres(b.slug, locale),
+        pair: best && (await getFood(best.foodSlug, locale))!.name,
+      };
+    }),
+  );
+  const kinds: ExplorerKind[] = (await getCategoriesWithBrands(locale)).map((c) => ({
     id: c.id,
     name: c.name,
     kana: c.kana,
@@ -57,9 +59,7 @@ export default function BrandsPage() {
       <div className="flex flex-col gap-1.5 px-5 md:gap-2.5 md:px-0">
         <p className="text-xs font-bold tracking-[0.2em] text-accent md:text-sm">BRANDS</p>
         <h1 className="text-[30px] font-black md:text-[44px]">{t.brandsPage.title}</h1>
-        <p className="hidden text-base text-muted md:block">
-          {t.brandsPage.description}
-        </p>
+        <p className="hidden text-base text-muted md:block">{t.brandsPage.description}</p>
       </div>
       <BrandExplorer brands={brands} kinds={kinds} locale={locale} />
     </div>

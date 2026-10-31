@@ -19,8 +19,14 @@ export const metadata: Metadata = pageMetadata({
   locale,
 });
 
-export default function NotesPage() {
-  const notes = getNotes();
+export default async function NotesPage() {
+  const notes = await Promise.all(
+    (await getNotes(locale)).map(async (n) => ({
+      ...n,
+      brandName: (await getBrand(n.brandSlug, locale))!.name,
+      foodName: (await getFood(n.foodSlug, locale))!.name,
+    })),
+  );
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-5 pb-12 pt-2 md:gap-10 md:px-6 md:pb-20">
@@ -38,8 +44,8 @@ export default function NotesPage() {
             <NoteCard
               href={paths.note(n.slug, locale)}
               title={n.title}
-              brandName={getBrand(n.brandSlug)!.name}
-              foodName={getFood(n.foodSlug)!.name}
+              brandName={n.brandName}
+              foodName={n.foodName}
               locale={locale}
             />
           </li>

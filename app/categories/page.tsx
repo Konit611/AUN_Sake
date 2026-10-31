@@ -39,20 +39,22 @@ function customGuide(category: Category) {
   return guide;
 }
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
   // 小分類カードで説明するものを先に、専用ガイドのものを後に（デザインどおり日本酒が最後）
-  const all = getCategories();
+  const all = await getCategories(locale);
   const ordered = [
     ...all.filter((c) => c.guide === "subcategories"),
     ...all.filter((c) => c.guide === "custom"),
   ];
-  const jump = ordered.map((c) => ({
-    ...c,
-    summary:
-      c.guide === "custom"
-        ? customGuide(c).summary(t)
-        : format(t.categoriesPage.subCount, { count: getSubCategories(c.id).length }),
-  }));
+  const jump = await Promise.all(
+    ordered.map(async (c) => ({
+      ...c,
+      summary:
+        c.guide === "custom"
+          ? customGuide(c).summary(t)
+          : format(t.categoriesPage.subCount, { count: (await getSubCategories(c.id, locale)).length }),
+    })),
+  );
   // モバイルの固定タブは 5 つまで等分、それ以上は横スクロール
   const tabsFit = jump.length <= 5;
 

@@ -39,70 +39,82 @@ function searchable(names: (string | undefined)[], others: (string | undefined)[
   return { names: n, haystack: normalize([...n, ...others.filter(Boolean)].join(" ")) };
 }
 
-function buildIndex(): SearchEntry[] {
-  const brands: SearchEntry[] = getBrands().map((b) => {
-    const sub = getSubCategory(b.subCategoryId)!;
-    const category = getCategory(b.categoryId)!;
-    return {
-      kind: "brand",
-      title: b.name,
-      detail: [sub.name, b.maker, b.region].join(t.common.sep),
-      href: paths.brand(b.slug, locale),
-      ...searchable(
-        [b.name, b.kana],
-        [
-          b.maker,
-          getMaker(b.makerId)!.kana,
-          b.region,
-          getRegion(b.regionId)!.kana,
-          sub.name,
-          sub.kana,
-          category.name,
-          category.kana,
-          ...b.tags,
-          // 肴の名前・よみでも銘柄が出るように
-          ...getPairings(b.slug).flatMap((p) => {
-            const food = getFood(p.foodSlug)!;
-            return [food.name, food.kana];
-          }),
-        ],
-      ),
-    };
-  });
+async function buildIndex(): Promise<SearchEntry[]> {
+  const brands: SearchEntry[] = await Promise.all(
+    (await getBrands(locale)).map(async (b) => {
+      const sub = (await getSubCategory(b.subCategoryId, locale))!;
+      const category = (await getCategory(b.categoryId, locale))!;
+      // 肴の名前・よみでも銘柄が出るように
+      const foods = await Promise.all(
+        (await getPairings(b.slug, locale)).map(async (p) => (await getFood(p.foodSlug, locale))!),
+      );
+      return {
+        kind: "brand" as const,
+        title: b.name,
+        detail: [sub.name, b.maker, b.region].join(t.common.sep),
+        href: paths.brand(b.slug, locale),
+        ...searchable(
+          [b.name, b.kana],
+          [
+            b.maker,
+            (await getMaker(b.makerId, locale))!.kana,
+            b.region,
+            (await getRegion(b.regionId, locale))!.kana,
+            sub.name,
+            sub.kana,
+            category.name,
+            category.kana,
+            ...b.tags,
+            ...foods.flatMap((f) => [f.name, f.kana]),
+          ],
+        ),
+      };
+    }),
+  );
 
-  const foods: SearchEntry[] = getFoodsWithPairings().map((f) => ({
-    kind: "food",
-    title: f.name,
-    detail: format(t.searchPage.foodDetail, { count: getPairingsByFood(f.slug).length }),
-    href: paths.food(f.slug, locale),
-    ...searchable([f.name, f.kana]),
-  }));
+  const foods: SearchEntry[] = await Promise.all(
+    (await getFoodsWithPairings(locale)).map(async (f) => ({
+      kind: "food" as const,
+      title: f.name,
+      detail: format(t.searchPage.foodDetail, {
+        count: (await getPairingsByFood(f.slug, locale)).length,
+      }),
+      href: paths.food(f.slug, locale),
+      ...searchable([f.name, f.kana]),
+    })),
+  );
 
   const categories: SearchEntry[] = [
-    ...getCategoriesWithBrands().map((c) => ({
-      kind: "category" as const,
-      title: c.name,
-      detail: format(t.common.brandCount, { count: getBrandsByCategory(c.id).length }),
-      href: paths.category(c.id, locale),
-      ...searchable([c.name, c.nameEn, c.kana]),
-    })),
-    ...getSubCategoriesWithBrands().map((s) => ({
-      kind: "category" as const,
-      title: s.name,
-      detail: [
-        getCategory(s.categoryId)!.name,
-        format(t.common.brandCount, { count: getBrandsBySubCategory(s.id).length }),
-      ].join(t.common.sep),
-      href: paths.category(s.id, locale),
-      ...searchable([s.name, s.kana]),
-    })),
+    ...(await Promise.all(
+      (await getCategoriesWithBrands(locale)).map(async (c) => ({
+        kind: "category" as const,
+        title: c.name,
+        detail: format(t.common.brandCount, {
+          count: (await getBrandsByCategory(c.id, locale)).length,
+        }),
+        href: paths.category(c.id, locale),
+        ...searchable([c.name, c.nameEn, c.kana]),
+      })),
+    )),
+    ...(await Promise.all(
+      (await getSubCategoriesWithBrands(undefined, locale)).map(async (s) => ({
+        kind: "category" as const,
+        title: s.name,
+        detail: [
+          (await getCategory(s.categoryId, locale))!.name,
+          format(t.common.brandCount, { count: (await getBrandsBySubCategory(s.id, locale)).length }),
+        ].join(t.common.sep),
+        href: paths.category(s.id, locale),
+        ...searchable([s.name, s.kana]),
+      })),
+    )),
   ];
 
   return [...brands, ...foods, ...categories];
 }
 
-export default function SearchPage() {
-  const entries = buildIndex();
+export default async function SearchPage() {
+  const entries = await buildIndex();
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-5 pb-12 pt-2 md:gap-10 md:px-6 md:pb-20">

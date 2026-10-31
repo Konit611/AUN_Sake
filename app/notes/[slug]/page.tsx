@@ -14,15 +14,15 @@ import { pageMetadata } from "@/lib/site";
 const locale = defaultLocale;
 const t = getDictionary(locale);
 
-export function generateStaticParams() {
-  return getNotes().map((n) => ({ slug: n.slug }));
+export async function generateStaticParams() {
+  return (await getNotes(locale)).map((n) => ({ slug: n.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/notes/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const note = getNote(slug);
+  const note = await getNote(slug, locale);
   if (!note) return {};
   return pageMetadata({
     title: note.title,
@@ -36,16 +36,24 @@ export async function generateMetadata({
 
 export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
   const { slug } = await params;
-  const note = getNote(slug);
+  const note = await getNote(slug, locale);
   if (!note) notFound();
 
-  const brand = getBrand(note.brandSlug)!;
-  const food = getFood(note.foodSlug)!;
+  const brand = (await getBrand(note.brandSlug, locale))!;
+  const food = (await getFood(note.foodSlug, locale))!;
+  const subName = (await getSubCategory(brand.subCategoryId, locale))!.name;
   // 飲み方つきのノートはその飲み方のペアリング、なければ同じ肴の最初のもの
+  const brandPairings = await getPairings(brand.slug, locale);
   const pairing =
-    getPairings(brand.slug).find((p) => p.id === pairingId(brand.slug, food.slug, note.serveId)) ??
-    getPairings(brand.slug).find((p) => p.foodSlug === food.slug);
-  const related = getRelatedNotes(note.slug);
+    brandPairings.find((p) => p.id === pairingId(brand.slug, food.slug, note.serveId)) ??
+    brandPairings.find((p) => p.foodSlug === food.slug);
+  const related = await Promise.all(
+    (await getRelatedNotes(note.slug, undefined, locale)).map(async (n) => ({
+      ...n,
+      brandName: (await getBrand(n.brandSlug, locale))!.name,
+      foodName: (await getFood(n.foodSlug, locale))!.name,
+    })),
+  );
   const { default: Body } = await import(`@/content/notes/${note.slug}.mdx`);
 
   return (
@@ -101,7 +109,7 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
             <div className="flex items-center gap-2.5">
               <Glyph char="阿" className="text-[28px]" />
               <span className="text-xs tracking-[0.2em] text-muted">
-                {[getSubCategory(brand.subCategoryId)!.name, brand.region].join(t.common.sep)}
+                {[subName, brand.region].join(t.common.sep)}
               </span>
             </div>
             <p className="text-xl font-black">{brand.name}</p>
@@ -132,8 +140,8 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
                 <NoteCard
                   href={paths.note(n.slug, locale)}
                   title={n.title}
-                  brandName={getBrand(n.brandSlug)!.name}
-                  foodName={getFood(n.foodSlug)!.name}
+                  brandName={n.brandName}
+                  foodName={n.foodName}
                   locale={locale}
                 />
               </li>

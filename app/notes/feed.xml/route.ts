@@ -17,18 +17,24 @@ function escape(text: string): string {
 // いまは既定の言語だけ（言語を足したら言語ごとのフィードにする）
 const locale = defaultLocale;
 
-export function GET() {
+export async function GET() {
   const t = getDictionary(locale);
   const url = (path: string) => new URL(path, SITE_URL).toString();
-  const notes = getNotes().slice(0, LIMIT);
+  const notes = await Promise.all(
+    (await getNotes(locale)).slice(0, LIMIT).map(async (n) => ({
+      ...n,
+      brandName: (await getBrand(n.brandSlug, locale))!.name,
+      foodName: (await getFood(n.foodSlug, locale))!.name,
+    })),
+  );
 
   const items = notes
     .map((n) => {
       const summary =
         n.lead ??
         format(n.quote ? t.feed.summaryWithQuote : t.feed.summary, {
-          brand: getBrand(n.brandSlug)!.name,
-          food: getFood(n.foodSlug)!.name,
+          brand: n.brandName,
+          food: n.foodName,
           quote: n.quote ?? "",
         });
       return `    <item>

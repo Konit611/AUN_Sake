@@ -1,319 +1,170 @@
 import "server-only";
 
-import { categories as categorySources, subCategories as subCategorySources } from "@/content/categories";
-import { serveStyles as serveStyleSources } from "@/content/serve-styles";
-import { makers as makerSources } from "@/content/makers";
-import { regions as regionSources } from "@/content/regions";
-import { foods as foodSources } from "@/content/foods";
-import { shochuBrands } from "@/content/brands/shochu";
-import { beerBrands } from "@/content/brands/beer";
-import { sakeBrands } from "@/content/brands/sake";
-import { wineBrands } from "@/content/brands/wine";
-import { notes as noteSources } from "@/content/notes";
-import { defaultLocale } from "./i18n/config";
-import { localize } from "./i18n/localized";
-import { validateContent } from "./validate";
-import {
-  FOOD_GENRES,
-  PAIRING_LEVELS,
-  pairingId,
-  type Brand,
-  type BrandInput,
-  type BrandSource,
-  type BrandServe,
-  type Category,
-  type CategoryId,
-  type Food,
-  type Maker,
-  type Region,
-  type FoodGenre,
-  type Pairing,
-  type PairingNote,
-  type ServeStyle,
-  type SubCategory,
-} from "./types";
+import { buildStore, type Store } from "./data/store";
+import { defaultLocale, type Locale } from "./i18n/config";
+import type { Brand, BrandServe, CategoryId } from "./types";
 
-// --- content/ の訳せる文字列を、表示する言語の文字列にする ---
-// いまは既定の言語（日本語）だけ。言語を足したら、ここを言語ごとに作って各関数に locale を渡す（docs/plan/i18n.md）
-const L = defaultLocale;
+// ページが使うデータの入口。いまは content/ のファイルから読むが、
+// DB に移すときはこの関数の中身だけを差し替える（docs/plan/db-migration.md）。
+// そのため、どれも async で locale を受け取る（いまは日本語だけ）。
 
-const categories: Category[] = categorySources.map((c) => ({
-  ...c,
-  name: localize(c.name, L),
-  lead: localize(c.lead, L),
-  chart: c.chart && { axes: c.chart.axes.map((a) => ({ ...a, label: localize(a.label, L) })) },
-}));
-const subCategories: SubCategory[] = subCategorySources.map((s) => ({
-  ...s,
-  name: localize(s.name, L),
-  meta: localize(s.meta, L),
-  taste: localize(s.taste, L),
-  pair: localize(s.pair, L),
-}));
-const serveStyles: ServeStyle[] = serveStyleSources.map((s) => ({ ...s, name: localize(s.name, L) }));
-const regions: Region[] = regionSources.map((r) => ({ ...r, name: localize(r.name, L) }));
-const makers: Maker[] = makerSources.map((m) => ({ ...m, name: localize(m.name, L) }));
-const foods: Food[] = foodSources.map((f) => ({ ...f, name: localize(f.name, L) }));
-const brandSources: BrandSource[] = [...shochuBrands, ...beerBrands, ...sakeBrands, ...wineBrands];
-const brandInputs: BrandInput[] = brandSources.map(
-  (b) => ({
-    ...b,
-    name: localize(b.name, L),
-    taste: localize(b.taste, L),
-    tags: localize(b.tags, L),
-    avoid: localize(b.avoid, L),
-    serves: b.serves.map((s) => ({ ...s, how: localize(s.how, L), note: localize(s.note, L) })),
-    pairings: b.pairings.map((p) => ({ ...p, why: localize(p.why, L) })),
-  }),
-);
-const notes: PairingNote[] = noteSources.map((n) => ({
-  ...n,
-  title: localize(n.title, L),
-  author: localize(n.author, L),
-  lead: localize(n.lead, L),
-  quote: localize(n.quote, L),
-}));
+const stores = new Map<Locale, Store>();
 
-// 参照ミスがあればここで落ちるので、dev でもビルドでも気づける
-const errors = validateContent({
-  categories,
-  subCategories,
-  serveStyles,
-  regions,
-  makers,
-  foods,
-  brands: brandInputs,
-  notes,
-});
-if (errors.length > 0) {
-  throw new Error(`content/ に問題があります:\n- ${errors.join("\n- ")}`);
-}
-
-const subCategoryById = new Map(subCategories.map((s) => [s.id, s]));
-const foodBySlug = new Map(foods.map((f) => [f.slug, f]));
-const serveById = new Map(serveStyles.map((s) => [s.id, s]));
-
-const regionById = new Map(regions.map((r) => [r.id, r]));
-const makerById = new Map(makers.map((m) => [m.id, m]));
-
-const brands: Brand[] = brandInputs.map((input) => {
-  const { pairings, regionId, ...b } = input;
-  void pairings;
-  const maker = makerById.get(b.makerId)!;
-  const region = regionById.get(regionId ?? maker.regionId)!;
-  return {
-    ...b,
-    categoryId: subCategoryById.get(b.subCategoryId)!.categoryId,
-    maker: maker.name,
-    regionId: region.id,
-    region: region.name,
-  };
-});
-const brandBySlug = new Map(brands.map((b) => [b.slug, b]));
-
-const pairings: Pairing[] = brandInputs.flatMap((b) =>
-  b.pairings.map((p, i) => ({
-    id: pairingId(b.slug, p.food, p.serve),
-    brandSlug: b.slug,
-    foodSlug: p.food,
-    level: p.level,
-    why: p.why,
-    serveId: p.serve,
-    order: i,
-  })),
-);
-
-const byLevel = (a: Pairing, b: Pairing) =>
-  PAIRING_LEVELS[a.level].order - PAIRING_LEVELS[b.level].order || a.order - b.order;
-
-// --- 索引 ---
-// 呼び出しのたびに配列全体を走査しないよう、モジュール読み込み時に一度だけ作る。
-// 返す配列は readonly（呼び出し側の sort などで共有データを壊さないため）。
-
-function groupBy<T>(items: readonly T[], keys: (item: T) => readonly string[]): Map<string, T[]> {
-  const map = new Map<string, T[]>();
-  for (const item of items) {
-    for (const key of keys(item)) {
-      const list = map.get(key);
-      if (list) list.push(item);
-      else map.set(key, [item]);
-    }
+/** 言語ごとに一度だけ content/ を解決する */
+function store(locale: Locale): Store {
+  let s = stores.get(locale);
+  if (!s) {
+    s = buildStore(locale);
+    stores.set(locale, s);
   }
-  return map;
+  return s;
 }
 
-const NONE: readonly never[] = [];
-
-const categoryById = new Map(categories.map((c) => [c.id, c]));
-const subCategoriesByCategory = groupBy(subCategories, (s) => [s.categoryId]);
-const brandsByCategory = groupBy(brands, (b) => [b.categoryId]);
-const brandsByMaker = groupBy(brands, (b) => [b.makerId]);
-/** alsoIn で載せている銘柄も含む */
-const brandsBySubCategory = groupBy(brands, (b) => [b.subCategoryId, ...(b.alsoIn ?? [])]);
-const pairingsByBrand = groupBy(pairings, (p) => [p.brandSlug]);
-const pairingsByFood = groupBy(pairings, (p) => [p.foodSlug]);
-for (const list of [...pairingsByBrand.values(), ...pairingsByFood.values()]) list.sort(byLevel);
-
-// draft のノートはページも一覧も作らない（検証だけはする）
-const publishedNotes = notes.filter((n) => !n.draft);
-const sortedNotes = [...publishedNotes].sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
-const noteBySlug = new Map(publishedNotes.map((n) => [n.slug, n]));
-const notesByBrand = groupBy(sortedNotes, (n) => [n.brandSlug]);
+// 既定の言語はモジュール読み込み時に作る。content/ に問題があればここで落ちるので、dev でもビルドでも気づける
+store(defaultLocale);
 
 // --- 分類 ---
 
-export function getCategories(): readonly Category[] {
-  return categories;
+export async function getCategories(locale: Locale = defaultLocale) {
+  return store(locale).getCategories();
 }
 
-export function getCategory(id: string): Category | undefined {
-  return categoryById.get(id as CategoryId);
+export async function getCategory(id: string, locale: Locale = defaultLocale) {
+  return store(locale).getCategory(id);
 }
 
-export function getSubCategories(categoryId?: CategoryId): readonly SubCategory[] {
-  return categoryId ? (subCategoriesByCategory.get(categoryId) ?? NONE) : subCategories;
+export async function getSubCategories(categoryId?: CategoryId, locale: Locale = defaultLocale) {
+  return store(locale).getSubCategories(categoryId);
 }
 
-export function getSubCategory(id: string): SubCategory | undefined {
-  return subCategoryById.get(id);
+export async function getSubCategory(id: string, locale: Locale = defaultLocale) {
+  return store(locale).getSubCategory(id);
 }
 
 /** 銘柄が 1 つ以上ある大分類 */
-export function getCategoriesWithBrands(): readonly Category[] {
-  return categories.filter((c) => brandsByCategory.has(c.id));
+export async function getCategoriesWithBrands(locale: Locale = defaultLocale) {
+  return store(locale).getCategoriesWithBrands();
 }
 
 /** 銘柄が 1 つ以上ある小分類（ページを作るのはこれだけ） */
-export function getSubCategoriesWithBrands(categoryId?: CategoryId): readonly SubCategory[] {
-  return getSubCategories(categoryId).filter((s) => brandsBySubCategory.has(s.id));
+export async function getSubCategoriesWithBrands(categoryId?: CategoryId, locale: Locale = defaultLocale) {
+  return store(locale).getSubCategoriesWithBrands(categoryId);
 }
 
 // --- 銘柄 ---
 
-export function getBrands(): readonly Brand[] {
-  return brands;
+export async function getBrands(locale: Locale = defaultLocale) {
+  return store(locale).getBrands();
 }
 
-export function getBrand(slug: string): Brand | undefined {
-  return brandBySlug.get(slug);
+export async function getBrand(slug: string, locale: Locale = defaultLocale) {
+  return store(locale).getBrand(slug);
 }
 
-export function getBrandsByCategory(categoryId: CategoryId): readonly Brand[] {
-  return brandsByCategory.get(categoryId) ?? NONE;
+export async function getBrandsByCategory(categoryId: CategoryId, locale: Locale = defaultLocale) {
+  return store(locale).getBrandsByCategory(categoryId);
 }
 
 /** alsoIn で載せている銘柄も含む */
-export function getBrandsBySubCategory(subCategoryId: string): readonly Brand[] {
-  return brandsBySubCategory.get(subCategoryId) ?? NONE;
+export async function getBrandsBySubCategory(subCategoryId: string, locale: Locale = defaultLocale) {
+  return store(locale).getBrandsBySubCategory(subCategoryId);
 }
 
 /** 同じ小分類のほかの銘柄 */
-export function getRelatedBrands(slug: string): readonly Brand[] {
-  const brand = brandBySlug.get(slug);
-  if (!brand) return NONE;
-  return getBrandsBySubCategory(brand.subCategoryId).filter((b) => b.slug !== slug);
+export async function getRelatedBrands(slug: string, locale: Locale = defaultLocale) {
+  return store(locale).getRelatedBrands(slug);
 }
 
 // --- 蔵元・産地 ---
 
-export function getMakers(): readonly Maker[] {
-  return makers;
+export async function getMakers(locale: Locale = defaultLocale) {
+  return store(locale).getMakers();
 }
 
-export function getMaker(id: string): Maker | undefined {
-  return makerById.get(id);
+export async function getMaker(id: string, locale: Locale = defaultLocale) {
+  return store(locale).getMaker(id);
 }
 
 /** 同じ蔵元の銘柄（霧島酒造 → 黒霧島・赤霧島） */
-export function getBrandsByMaker(makerId: string): readonly Brand[] {
-  return brandsByMaker.get(makerId) ?? NONE;
+export async function getBrandsByMaker(makerId: string, locale: Locale = defaultLocale) {
+  return store(locale).getBrandsByMaker(makerId);
 }
 
-export function getRegions(): readonly Region[] {
-  return regions;
+export async function getRegions(locale: Locale = defaultLocale) {
+  return store(locale).getRegions();
 }
 
-export function getRegion(id: string): Region | undefined {
-  return regionById.get(id);
+export async function getRegion(id: string, locale: Locale = defaultLocale) {
+  return store(locale).getRegion(id);
 }
 
 // --- 飲み方・肴 ---
 
-export function getServeStyle(id: string): ServeStyle | undefined {
-  return serveById.get(id);
+export async function getServeStyle(id: string, locale: Locale = defaultLocale) {
+  return store(locale).getServeStyle(id);
 }
 
 /** 「お湯割り（焼酎6：お湯4）」 */
-export function formatServe(serve: BrandServe): string {
-  const name = serveById.get(serve.serveId)!.name;
-  return serve.how ? `${name}（${serve.how}）` : name;
+export async function formatServe(serve: BrandServe, locale: Locale = defaultLocale) {
+  return store(locale).formatServe(serve);
 }
 
+/** 銘柄の serves のうち、おすすめの飲み方（データを読まない） */
 export function getRecommendedServe(brand: Brand): BrandServe {
   return brand.serves.find((s) => s.serveId === brand.recommendedServe)!;
 }
 
-export function getFoods(): readonly Food[] {
-  return foods;
+export async function getFoods(locale: Locale = defaultLocale) {
+  return store(locale).getFoods();
 }
 
-export function getFood(slug: string): Food | undefined {
-  return foodBySlug.get(slug);
+export async function getFood(slug: string, locale: Locale = defaultLocale) {
+  return store(locale).getFood(slug);
 }
 
 /** ペアリングがある肴（ページを作るのはこれだけ） */
-export function getFoodsWithPairings(): readonly Food[] {
-  return foods.filter((f) => pairingsByFood.has(f.slug));
+export async function getFoodsWithPairings(locale: Locale = defaultLocale) {
+  return store(locale).getFoodsWithPairings();
 }
 
 /** 銘柄の肴ジャンル。ペアリングした肴の genres を合わせたもの */
-export function getBrandFoodGenres(brandSlug: string): FoodGenre[] {
-  const genres = new Set(getPairings(brandSlug).flatMap((p) => foodBySlug.get(p.foodSlug)!.genres));
-  return FOOD_GENRES.filter((g) => genres.has(g));
+export async function getBrandFoodGenres(brandSlug: string, locale: Locale = defaultLocale) {
+  return store(locale).getBrandFoodGenres(brandSlug);
 }
 
 // --- ペアリング ---
 
 /** 阿吽 → 好相性 → 意外 の順 */
-export function getPairings(brandSlug: string): readonly Pairing[] {
-  return pairingsByBrand.get(brandSlug) ?? NONE;
+export async function getPairings(brandSlug: string, locale: Locale = defaultLocale) {
+  return store(locale).getPairings(brandSlug);
 }
 
 /** 銘柄ページの「飲み方別、息の合う肴」。銘柄の serves の順 */
-export function getServePairings(brandSlug: string): readonly Pairing[] {
-  const brand = brandBySlug.get(brandSlug);
-  if (!brand) return NONE;
-  const list = getPairings(brandSlug);
-  return brand.serves.flatMap((s) => list.filter((p) => p.serveId === s.serveId));
+export async function getServePairings(brandSlug: string, locale: Locale = defaultLocale) {
+  return store(locale).getServePairings(brandSlug);
 }
 
 /** 肴 → 銘柄の逆引き */
-export function getPairingsByFood(foodSlug: string): readonly Pairing[] {
-  return pairingsByFood.get(foodSlug) ?? NONE;
+export async function getPairingsByFood(foodSlug: string, locale: Locale = defaultLocale) {
+  return store(locale).getPairingsByFood(foodSlug);
 }
 
 // --- ペアリングノート ---
 
 /** 新しい順 */
-export function getNotes(): readonly PairingNote[] {
-  return sortedNotes;
+export async function getNotes(locale: Locale = defaultLocale) {
+  return store(locale).getNotes();
 }
 
-export function getNote(slug: string): PairingNote | undefined {
-  return noteBySlug.get(slug);
+export async function getNote(slug: string, locale: Locale = defaultLocale) {
+  return store(locale).getNote(slug);
 }
 
-export function getNotesByBrand(brandSlug: string): readonly PairingNote[] {
-  return notesByBrand.get(brandSlug) ?? NONE;
+export async function getNotesByBrand(brandSlug: string, locale: Locale = defaultLocale) {
+  return store(locale).getNotesByBrand(brandSlug);
 }
 
 /** 同じ銘柄か同じ肴のノート（自分は除く）。同じ銘柄を先に、それぞれ新しい順 */
-export function getRelatedNotes(slug: string, limit = 3): readonly PairingNote[] {
-  const note = noteBySlug.get(slug);
-  if (!note) return NONE;
-  const sameBrand = sortedNotes.filter((n) => n.brandSlug === note.brandSlug && n.slug !== slug);
-  const sameFood = sortedNotes.filter(
-    (n) => n.foodSlug === note.foodSlug && n.brandSlug !== note.brandSlug,
-  );
-  return [...sameBrand, ...sameFood].slice(0, limit);
+export async function getRelatedNotes(slug: string, limit = 3, locale: Locale = defaultLocale) {
+  return store(locale).getRelatedNotes(slug, limit);
 }

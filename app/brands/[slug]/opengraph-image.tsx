@@ -12,18 +12,18 @@ export const size = ogSize;
 export const contentType = ogContentType;
 
 // ページと同じ銘柄をビルド時に画像化する
-export function generateStaticParams() {
-  return getBrands().map((b) => ({ slug: b.slug }));
+export async function generateStaticParams() {
+  return (await getBrands(locale)).map((b) => ({ slug: b.slug }));
 }
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const brand = getBrand(slug);
+  const brand = await getBrand(slug, locale);
   if (!brand) notFound();
 
-  const sub = getSubCategory(brand.subCategoryId)!;
-  const best = getPairings(brand.slug)[0];
-  const food = best && getFood(best.foodSlug)!;
+  const sub = (await getSubCategory(brand.subCategoryId, locale))!;
+  const best = (await getPairings(brand.slug, locale))[0];
+  const food = best && (await getFood(best.foodSlug, locale))!;
 
   return new ImageResponse(
     (
