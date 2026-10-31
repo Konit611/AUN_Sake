@@ -41,6 +41,7 @@ const categories: Category[] = categorySources.map((c) => ({
   ...c,
   name: localize(c.name, L),
   lead: localize(c.lead, L),
+  chart: c.chart && { axes: c.chart.axes.map((a) => ({ ...a, label: localize(a.label, L) })) },
 }));
 const subCategories: SubCategory[] = subCategorySources.map((s) => ({
   ...s,

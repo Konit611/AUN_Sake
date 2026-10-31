@@ -84,7 +84,9 @@ content/
   taste: "…",                         // 한두 문장
   tags: ["…", "…"],
   tastes: ["floral", "light"],        // clean・crisp・rich・sweet・floral・light (すっきり・キレ・コク・甘み・華やか・軽快). 「銘柄から探す」 필터용
-  tasteChart: { sweetness: 3, aroma: 4, kire: 3, koku: 4 },  // 선택, 1–5
+  // 선택. 축은 대분류마다 content/categories.ts 의 chart.axes 와 정확히 같아야 한다 (1–5).
+  // 축이 정의되지 않은 대분류(지금은 焼酎 외 전부)의 브랜드는 쓸 수 없다
+  tasteChart: { sweetness: 3, aroma: 4, kire: 3, koku: 4 },
   serves: [
     { serveId: "rock", how: "大きめの氷で", note: "…" },     // how·note 선택
   ],

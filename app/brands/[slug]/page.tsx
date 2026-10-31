@@ -18,9 +18,6 @@ import {
 import { defaultLocale, format, formatDate, getDictionary } from "@/lib/i18n";
 import { paths } from "@/lib/routes";
 import { pageMetadata } from "@/lib/site";
-import type { TasteChart } from "@/lib/types";
-
-const CHART_AXES: (keyof TasteChart)[] = ["sweetness", "aroma", "kire", "koku"];
 
 // いまは既定の言語だけ（言語を足したらルートの params から）
 const locale = defaultLocale;
@@ -117,19 +114,20 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
           </p>
           <p className="text-[15px] leading-[1.9] text-fg-2 md:text-lg">{brand.taste}</p>
           <TagList tags={brand.tags} />
-          {brand.tasteChart && (
+          {/* 軸は大分類ごと（content/categories.ts の chart.axes） */}
+          {brand.tasteChart && category.chart && (
             <div className="flex flex-col gap-2.5 rounded-2xl bg-surface px-[18px] py-4 md:bg-transparent md:p-0 md:pt-2">
               <p className="text-xs text-subtle md:text-[13px]">{t.chart.title}</p>
-              {CHART_AXES.map((key) => {
+              {category.chart.axes.map(({ id: key, label }) => {
                 const v = brand.tasteChart![key];
                 return (
                   <div key={key} className="flex items-center gap-3 md:gap-3.5">
                     <span className="w-10 text-[13px] text-fg-2 md:w-14 md:text-sm">
-                      {t.chart[key]}
+                      {label}
                     </span>
                     <div
                       role="img"
-                      aria-label={format(t.chart.aria, { label: t.chart[key], value: v })}
+                      aria-label={format(t.chart.aria, { label, value: v })}
                       className="flex flex-1 gap-[5px] md:gap-1.5"
                     >
                       {[1, 2, 3, 4, 5].map((i) => (

@@ -16,6 +16,7 @@
 | 테이블 | 키 | 열 | 지금 파일 |
 |---|---|---|---|
 | `categories` | `id` | name, name_en, kana, glyph, lead, guide, look(jsonb), sort | `content/categories.ts` |
+| `chart_axes` | (category_id, id) | label, sort | `chart.axes` |
 | `sub_categories` | `id` | category_id → categories, name, kana, meta, taste, pair, examples(text[]), sort | 〃 |
 | `serve_styles` | `id` | name | `content/serve-styles.ts` |
 | `regions` | `id` | name, kana, kind(prefecture/country), country_id → regions | `content/regions.ts` |
@@ -40,6 +41,7 @@
 | 없는 분류·안주·음용법 참조 | FOREIGN KEY |
 | tastes·genres·level 값 | CHECK 또는 enum |
 | tasteChart 1–5 | CHECK |
+| tasteChart의 축이 대분류의 축과 같음 | `brand_chart_values (brand_slug, category_id, axis_id) → chart_axes` + 빠진 축은 앱에서 검사 |
 | 대분류와 소분류 id가 겹치지 않음 | 트리거 또는 앱에서 검사 (URL을 공유하므로) |
 | `recommendedServe`·pairing의 serve가 그 브랜드의 serves에 있음 | FK `(brand_slug, serve_id) → brand_serves` |
 | `alsoIn`이 같은 대분류 | 트리거 또는 앱에서 검사 |

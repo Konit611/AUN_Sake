@@ -54,10 +54,7 @@ export const ja = {
   genres: { seafood: "魚介", meat: "肉料理", fried: "揚げ物", simmered: "煮物", spicy: "辛い料理" },
   chart: {
     title: "味わいチャート（AUN編集部の主観）",
-    sweetness: "甘み",
-    aroma: "香り",
-    kire: "キレ",
-    koku: "コク",
+    /** 軸の名前は大分類ごとに content/categories.ts の chart.axes */
     aria: "{label} 5段階中{value}",
   },
   home: {

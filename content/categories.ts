@@ -1,6 +1,7 @@
 import type { CategorySource, SubCategorySource } from "@/lib/types";
 
 // 配列の順番がそのまま表示順（「お酒の分類」ページでは guide: "custom" のものを最後に出す）
+// chart.axes：銘柄ページの味わいチャートの軸。いまは焼酎だけ（ほかの大分類は軸を決めてから足す）
 export const categories: CategorySource[] = [
   {
     id: "shochu",
@@ -11,6 +12,14 @@ export const categories: CategorySource[] = [
     lead: "原料で香りと味わいが大きく変わる蒸留酒。お湯割り・ロック・水割り・ソーダ割りと飲み方の幅が広く、飲み方によって合う肴も変わります。",
     guide: "subcategories",
     look: { tint: "#22384A", stroke: "#6F879B", icon: "bottle" },
+    chart: {
+      axes: [
+        { id: "sweetness", label: "甘み" },
+        { id: "aroma", label: "香り" },
+        { id: "kire", label: "キレ" },
+        { id: "koku", label: "コク" },
+      ],
+    },
   },
   {
     id: "beer",
