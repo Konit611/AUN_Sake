@@ -81,7 +81,8 @@ export function SearchBox({ entries, locale }: { entries: SearchEntry[]; locale:
               ? format(t.results, { q: query.trim(), count: results.length })
               : format(t.noResults, { q: query.trim() })}
           </p>
-          {GROUP_ORDER.map((kind) => {
+          {/* 結果は関連度順なので、いちばん当たっているものがあるグループを先に（同点ならお酒・肴・分類の順） */}
+          {[...new Set([...results.map((r) => r.kind), ...GROUP_ORDER])].map((kind) => {
             const label = t.groups[kind];
             const items = results.filter((r) => r.kind === kind);
             if (items.length === 0) return null;

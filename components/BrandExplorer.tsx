@@ -103,14 +103,15 @@ export function BrandExplorer({
   const f = parseFilters(search, kindIds);
 
   const kindById = useMemo(() => new Map(kinds.map((k) => [k.id, k])), [kinds]);
-  // 検索対象：名前・よみ・蔵元・産地・分類（サーバーから送らずにここで一度だけ作る）
-  const haystacks = useMemo(
+  // 検索対象：名前・よみ（関連度で重く見る）と、蔵元・産地・分類（サーバーから送らずにここで一度だけ作る）
+  const searchables = useMemo(
     () =>
       new Map(
         brands.map((b) => {
           const kind = kindById.get(b.kind);
-          const parts = [b.name, b.kana, b.maker, b.makerKana, b.region, b.regionKana, b.sub, b.subKana, kind?.name, kind?.kana];
-          return [b.slug, normalize(parts.filter(Boolean).join(" "))];
+          const names = [b.name, b.kana].filter((x): x is string => !!x).map(normalize);
+          const others = [b.maker, b.makerKana, b.region, b.regionKana, b.sub, b.subKana, kind?.name, kind?.kana];
+          return [b.slug, { names, haystack: normalize([...names, ...others].filter(Boolean).join(" ")) }];
         }),
       ),
     [brands, kindById],
@@ -129,7 +130,7 @@ export function BrandExplorer({
   // 味わい・肴はもう一度押すと解除
   const toggle = (key: "taste" | "food", id: string) => update({ [key]: f[key] === id ? "" : id });
 
-  const results = filterBrands(brands, f, (b) => haystacks.get(b.slug)!);
+  const results = filterBrands(brands, f, (b) => searchables.get(b.slug)!);
 
   const kindItems = [{ id: "all", name: t.common.all }, ...kinds];
   const tasteItems = TASTE_KEYWORDS.map((id) => ({ id, name: t.tastes[id] }));
