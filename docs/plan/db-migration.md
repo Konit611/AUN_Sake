@@ -52,10 +52,13 @@
 
 ## 순서
 
-1. **`lib/data.ts`의 함수를 async로 바꾼다** (파일 기반 그대로, 동작 변화 없음)
-   - DB 이전에서 가장 손이 많이 가는 부분은 호출하는 쪽(페이지, sitemap, OG 이미지, 피드)에 `await`를 붙이는 일이다. 데이터 출처를 바꾸기 전에 먼저 해 두면, 이전 PR이 작아진다.
+1. ✅ **`lib/data.ts`의 함수를 async로 바꾼다** (파일 기반 그대로, 동작 변화 없음) — 완료
+   - 모든 조회 함수가 `async`이고 `locale`을 받는다. 호출하는 쪽(페이지, sitemap, OG 이미지, 피드)은 모두 `await`한다.
+   - 지금 구현은 `lib/data/store.ts`의 `buildStore(locale)`: 언어별로 한 번 content/를 풀고 색인을 만든다.
+   - 페이지는 목록을 그리기 전에 `Promise.all`로 필요한 값을 모은다. DB로 바꾸면 이것이 N+1 쿼리가 되므로,
+     요청 단위 중복 제거(React `cache()`)나 묶음 조회 함수(`getBrandsBySlugs` 등)를 그때 추가한다.
 2. **시드 스크립트**: `content/`를 읽어 `validateContent()`를 통과시킨 뒤 INSERT. 이 시점의 파일이 마지막 원본.
-3. **`lib/data.ts`의 구현만 DB로 바꾼다.** 함수 이름·반환 형태는 그대로.
+3. **`lib/data.ts`의 구현만 DB로 바꾼다.** 함수 이름·반환 형태는 그대로. `lib/data/store.ts`는 DB 쿼리로 대체된다.
    - 읽기는 `'use cache'` + `cacheTag`로 캐시하고, 편집하면 `revalidateTag`.
    - 지금 모듈을 불러올 때 만드는 색인(Map)은 DB 인덱스와 쿼리로 대체.
 4. **기사 본문**: 처음에는 MDX 파일을 그대로 둬도 된다 (notes 행에 slug만 있으면 됨). DB에 넣는다면 실행 중에 MDX를 컴파일해야 하므로, 신뢰할 수 있는 편집자만 쓰게 하거나 Markdown으로 제한한다.

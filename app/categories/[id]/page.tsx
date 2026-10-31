@@ -30,32 +30,33 @@ type View =
   | { kind: "category"; category: Category; brands: readonly Brand[] }
   | { kind: "sub"; category: Category; sub: SubCategory; brands: readonly Brand[] };
 
-function resolve(id: string): View | undefined {
-  const category = getCategory(id);
+async function resolve(id: string): Promise<View | undefined> {
+  const category = await getCategory(id, locale);
   if (category) {
-    const brands = getBrandsByCategory(category.id);
+    const brands = await getBrandsByCategory(category.id, locale);
     return brands.length > 0 ? { kind: "category", category, brands } : undefined;
   }
-  const sub = getSubCategory(id);
+  const sub = await getSubCategory(id, locale);
   if (sub) {
-    const brands = getBrandsBySubCategory(sub.id);
+    const brands = await getBrandsBySubCategory(sub.id, locale);
     if (brands.length === 0) return undefined;
-    return { kind: "sub", category: getCategory(sub.categoryId)!, sub, brands };
+    return { kind: "sub", category: (await getCategory(sub.categoryId, locale))!, sub, brands };
   }
 }
 
-export function generateStaticParams() {
-  return [
-    ...getCategoriesWithBrands(),
-    ...getSubCategoriesWithBrands(),
-  ].map((x) => ({ id: x.id }));
+export async function generateStaticParams() {
+  const [categories, subCategories] = await Promise.all([
+    getCategoriesWithBrands(locale),
+    getSubCategoriesWithBrands(undefined, locale),
+  ]);
+  return [...categories, ...subCategories].map((x) => ({ id: x.id }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/categories/[id]">): Promise<Metadata> {
   const { id } = await params;
-  const view = resolve(id);
+  const view = await resolve(id);
   if (!view) return {};
   const name = view.kind === "sub" ? view.sub.name : view.category.name;
   return pageMetadata({
@@ -68,11 +69,21 @@ export async function generateMetadata({
 
 export default async function CategoryPage({ params }: PageProps<"/categories/[id]">) {
   const { id } = await params;
-  const view = resolve(id);
+  const view = await resolve(id);
   if (!view) notFound();
 
-  const { category, brands } = view;
-  const subs = getSubCategoriesWithBrands(category.id);
+  const { category } = view;
+  const subs = await getSubCategoriesWithBrands(category.id, locale);
+  const brands = await Promise.all(
+    view.brands.map(async (b) => {
+      const best = (await getPairings(b.slug, locale))[0];
+      return {
+        ...b,
+        subName: (await getSubCategory(b.subCategoryId, locale))!.name,
+        pairName: best && (await getFood(best.foodSlug, locale))!.name,
+      };
+    }),
+  );
   const crumbs: Crumb[] = [
     { label: t.common.home, href: paths.home(locale) },
     { label: t.categoriesPage.title, href: paths.categories(locale) },
@@ -94,11 +105,16 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
           eyebrow={category.nameEn}
           title={view.kind === "sub" ? view.sub.name : category.name}
         />
-        <p className="text-sm text-muted md:text-[15px]">{format(t.common.brandCount, { count: brands.length })}</p>
+        <p className="text-sm text-muted md:text-[15px]">
+          {format(t.common.brandCount, { count: brands.length })}
+        </p>
       </div>
 
       {subs.length > 1 && (
-        <nav aria-label={format(t.categoryPage.tabs, { name: category.name })} className="-mx-5 md:mx-0">
+        <nav
+          aria-label={format(t.categoryPage.tabs, { name: category.name })}
+          className="-mx-5 md:mx-0"
+        >
           <ul className="flex gap-2 overflow-x-auto px-5 pb-1 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
             {tabs.map((tab) => {
               const on = tab.id === id;
@@ -119,27 +135,24 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
       )}
 
       <ShowMore className={brandGridClass} locale={locale}>
-        {brands.map((b) => {
-          const best = getPairings(b.slug)[0];
-          return (
-            <li key={b.slug}>
-              <BrandCard
-                locale={locale}
-                b={{
-                  slug: b.slug,
-                  name: b.name,
-                  kindName: category.name,
-                  sub: getSubCategory(b.subCategoryId)!.name,
-                  maker: b.maker,
-                  region: b.region,
-                  tastes: b.tastes,
-                  pair: best && getFood(best.foodSlug)!.name,
-                  look: category.look,
-                }}
-              />
-            </li>
-          );
-        })}
+        {brands.map((b) => (
+          <li key={b.slug}>
+            <BrandCard
+              locale={locale}
+              b={{
+                slug: b.slug,
+                name: b.name,
+                kindName: category.name,
+                sub: b.subName,
+                maker: b.maker,
+                region: b.region,
+                tastes: b.tastes,
+                pair: b.pairName,
+                look: category.look,
+              }}
+            />
+          </li>
+        ))}
       </ShowMore>
     </div>
   );

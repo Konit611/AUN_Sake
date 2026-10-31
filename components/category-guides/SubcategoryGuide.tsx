@@ -10,12 +10,18 @@ import { anchorOffset } from "./GuideSection";
 const CHIP_LIMIT = 8;
 
 /** guide: "subcategories" の大分類。小分類ごとに 産地など・特徴（阿）・合う料理（吽）・銘柄 */
-export function SubcategoryGuide({ category, locale }: { category: Category; locale: Locale }) {
+export async function SubcategoryGuide({ category, locale }: { category: Category; locale: Locale }) {
   const t = getDictionary(locale);
+  const subs = await Promise.all(
+    (await getSubCategories(category.id, locale)).map(async (s) => ({
+      ...s,
+      brands: await getBrandsBySubCategory(s.id, locale),
+    })),
+  );
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-[repeat(auto-fill,minmax(330px,1fr))] md:gap-4">
-      {getSubCategories(category.id).map((s) => {
-        const all = getBrandsBySubCategory(s.id);
+      {subs.map((s) => {
+        const all = s.brands;
         const brands = all.slice(0, CHIP_LIMIT);
         // 代表銘柄の例は、空いている枠にだけ出す
         const examples = (s.examples ?? []).slice(0, Math.max(0, CHIP_LIMIT - brands.length));

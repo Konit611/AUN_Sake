@@ -26,15 +26,15 @@ const t = getDictionary(locale);
 // 「ほかの○○」に並べる数。残りは分類ページへ
 const RELATED_LIMIT = 6;
 
-export function generateStaticParams() {
-  return getBrands().map((b) => ({ slug: b.slug }));
+export async function generateStaticParams() {
+  return (await getBrands(locale)).map((b) => ({ slug: b.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: PageProps<"/brands/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const brand = getBrand(slug);
+  const brand = await getBrand(slug, locale);
   if (!brand) return {};
   return pageMetadata({
     title: brand.name,
@@ -47,36 +47,42 @@ export async function generateMetadata({
 
 export default async function BrandPage({ params }: PageProps<"/brands/[slug]">) {
   const { slug } = await params;
-  const brand = getBrand(slug);
+  const brand = await getBrand(slug, locale);
   if (!brand) notFound();
 
-  const sub = getSubCategory(brand.subCategoryId)!;
-  const category = getCategory(brand.categoryId)!;
+  const sub = (await getSubCategory(brand.subCategoryId, locale))!;
+  const category = (await getCategory(brand.categoryId, locale))!;
 
-  const serveCards = getServePairings(brand.slug).map((p) => {
-    const serve = brand.serves.find((s) => s.serveId === p.serveId)!;
-    return {
-      id: p.id,
-      name: getServeStyle(serve.serveId)!.name,
-      how: serve.how,
-      note: serve.note,
-      food: getFood(p.foodSlug)!.name,
-      foodSlug: p.foodSlug,
-      why: p.why,
-    };
-  });
+  const serveCards = await Promise.all(
+    (await getServePairings(brand.slug, locale)).map(async (p) => {
+      const serve = brand.serves.find((s) => s.serveId === p.serveId)!;
+      return {
+        id: p.id,
+        name: (await getServeStyle(serve.serveId, locale))!.name,
+        how: serve.how,
+        note: serve.note,
+        food: (await getFood(p.foodSlug, locale))!.name,
+        foodSlug: p.foodSlug,
+        why: p.why,
+      };
+    }),
+  );
 
   // 本文はノートのページにだけ置き、ここは最新の 1 本の抜粋（同じ本文が 2 か所に出ないように）
-  const [note, ...olderNotes] = getNotesByBrand(brand.slug);
+  const [note, ...olderNotes] = await getNotesByBrand(brand.slug, locale);
 
   // 同じ小分類がなければ、同じ大分類から
-  const sameSub = getRelatedBrands(brand.slug);
+  const sameSub = await getRelatedBrands(brand.slug, locale);
   const related =
     sameSub.length > 0
-      ? { label: format(t.brandPage.otherOf, { name: sub.name }), brands: sameSub, href: paths.category(sub.id, locale) }
+      ? {
+          label: format(t.brandPage.otherOf, { name: sub.name }),
+          brands: sameSub,
+          href: paths.category(sub.id, locale),
+        }
       : {
           label: format(t.brandPage.otherOf, { name: category.name }),
-          brands: getBrandsByCategory(category.id).filter((b) => b.slug !== brand.slug),
+          brands: (await getBrandsByCategory(category.id, locale)).filter((b) => b.slug !== brand.slug),
           href: paths.category(category.id, locale),
         };
 

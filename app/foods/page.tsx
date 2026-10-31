@@ -19,8 +19,14 @@ export const metadata: Metadata = pageMetadata({
   locale,
 });
 
-export default function FoodsPage() {
-  const foods = getFoodsWithPairings().map((f) => ({ ...f, pairings: getPairingsByFood(f.slug) }));
+export default async function FoodsPage() {
+  const foods = await Promise.all(
+    (await getFoodsWithPairings(locale)).map(async (f) => {
+      // getPairingsByFood は 阿吽 → 好相性 → 意外 の順
+      const pairings = await getPairingsByFood(f.slug, locale);
+      return { ...f, pairings, bestBrandName: (await getBrand(pairings[0].brandSlug, locale))!.name };
+    }),
+  );
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-5 pb-12 pt-2 md:gap-10 md:px-6 md:pb-20">
@@ -49,7 +55,7 @@ export default function FoodsPage() {
                 <p className="flex items-center gap-2 text-[13px] text-muted">
                   <PairingBadge level={best.level} locale={locale} />
                   <span>
-                    {getBrand(best.brandSlug)!.name}
+                    {f.bestBrandName}
                     {f.pairings.length > 1 && ` ${format(t.common.othersBrands, { count: f.pairings.length - 1 })}`}
                   </span>
                 </p>

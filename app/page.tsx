@@ -34,53 +34,75 @@ const FINDER_BRANDS_PER_CATEGORY = 8;
 // 「お酒の分類から探す」の各行に並べる銘柄名の数
 const TREE_NAMES = 3;
 
-export default function Home() {
-  const finder: FinderCategory[] = getCategoriesWithBrands().map((c) => {
-    const all = getBrandsByCategory(c.id);
-    return {
-      id: c.id,
-      name: c.name,
-      total: all.length,
-      brands: all.slice(0, FINDER_BRANDS_PER_CATEGORY).map((b) => ({
-        slug: b.slug,
-        name: b.name,
-        sub: getSubCategory(b.subCategoryId)!.name,
-        maker: b.maker,
-        region: b.region,
-        taste: b.taste,
-        tags: b.tags,
-        serve: formatServe(getRecommendedServe(b)),
-        avoid: b.avoid,
-        pairs: getPairings(b.slug).map((p, _, all) => ({
-          id: p.id,
-          food: getFood(p.foodSlug)!.name,
-          foodSlug: p.foodSlug,
-          level: p.level,
-          why: p.why,
-          // 同じ肴が飲み方違いで複数あるときだけ、どの飲み方の話かを添える
-          serve:
-            p.serveId && all.filter((x) => x.foodSlug === p.foodSlug).length > 1
-              ? getServeStyle(p.serveId)!.name
-              : undefined,
-        })),
-      })),
-    };
-  });
+export default async function Home() {
+  const finder: FinderCategory[] = await Promise.all(
+    (await getCategoriesWithBrands(locale)).map(async (c) => {
+      const all = await getBrandsByCategory(c.id, locale);
+      return {
+        id: c.id,
+        name: c.name,
+        total: all.length,
+        brands: await Promise.all(
+          all.slice(0, FINDER_BRANDS_PER_CATEGORY).map(async (b) => {
+            const pairings = await getPairings(b.slug, locale);
+            return {
+              slug: b.slug,
+              name: b.name,
+              sub: (await getSubCategory(b.subCategoryId, locale))!.name,
+              maker: b.maker,
+              region: b.region,
+              taste: b.taste,
+              tags: b.tags,
+              serve: await formatServe(getRecommendedServe(b), locale),
+              avoid: b.avoid,
+              pairs: await Promise.all(
+                pairings.map(async (p) => ({
+                  id: p.id,
+                  food: (await getFood(p.foodSlug, locale))!.name,
+                  foodSlug: p.foodSlug,
+                  level: p.level,
+                  why: p.why,
+                  // 同じ肴が飲み方違いで複数あるときだけ、どの飲み方の話かを添える
+                  serve:
+                    p.serveId && pairings.filter((x) => x.foodSlug === p.foodSlug).length > 1
+                      ? (await getServeStyle(p.serveId, locale))!.name
+                      : undefined,
+                })),
+              ),
+            };
+          }),
+        ),
+      };
+    }),
+  );
 
   // 銘柄か代表銘柄の例がある小分類だけ出す
-  const tree = getCategories()
-    .map((c) => ({
-      ...c,
-      subs: getSubCategories(c.id)
-        .map((s) => ({
-          ...s,
-          names: [...getBrandsBySubCategory(s.id).map((b) => b.name), ...(s.examples ?? [])],
-        }))
-        .filter((s) => s.names.length > 0),
-    }))
-    .filter((c) => c.subs.length > 0);
+  const tree = (
+    await Promise.all(
+      (await getCategories(locale)).map(async (c) => ({
+        ...c,
+        subs: (
+          await Promise.all(
+            (await getSubCategories(c.id, locale)).map(async (s) => ({
+              ...s,
+              names: [
+                ...(await getBrandsBySubCategory(s.id, locale)).map((b) => b.name),
+                ...(s.examples ?? []),
+              ],
+            })),
+          )
+        ).filter((s) => s.names.length > 0),
+      })),
+    )
+  ).filter((c) => c.subs.length > 0);
 
-  const notes = getNotes().slice(0, 3);
+  const notes = await Promise.all(
+    (await getNotes(locale)).slice(0, 3).map(async (n) => ({
+      ...n,
+      brandName: (await getBrand(n.brandSlug, locale))!.name,
+      foodName: (await getFood(n.foodSlug, locale))!.name,
+    })),
+  );
 
   return (
     <>
@@ -227,8 +249,8 @@ export default function Home() {
                 href={paths.note(n.slug, locale)}
                 locale={locale}
                 title={n.title}
-                brandName={getBrand(n.brandSlug)!.name}
-                foodName={getFood(n.foodSlug)!.name}
+                brandName={n.brandName}
+                foodName={n.foodName}
               />
             ))}
           </div>

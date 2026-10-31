@@ -11,17 +11,17 @@ export const alt = t.og.noteAlt;
 export const size = ogSize;
 export const contentType = ogContentType;
 
-export function generateStaticParams() {
-  return getNotes().map((n) => ({ slug: n.slug }));
+export async function generateStaticParams() {
+  return (await getNotes(locale)).map((n) => ({ slug: n.slug }));
 }
 
 export default async function Image({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const note = getNote(slug);
+  const note = await getNote(slug, locale);
   if (!note) notFound();
 
-  const brand = getBrand(note.brandSlug)!;
-  const food = getFood(note.foodSlug)!;
+  const brand = (await getBrand(note.brandSlug, locale))!;
+  const food = (await getFood(note.foodSlug, locale))!;
 
   return new ImageResponse(
     (
