@@ -5,21 +5,30 @@ import { SakeGuide } from "@/components/category-guides/SakeGuide";
 import { SubcategoryGuide } from "@/components/category-guides/SubcategoryGuide";
 import { Glyph } from "@/components/ui";
 import { getCategories, getSubCategories } from "@/lib/data";
+import { defaultLocale, format, getDictionary, type Dictionary, type Locale } from "@/lib/i18n";
+import { paths } from "@/lib/routes";
 import { pageMetadata } from "@/lib/site";
 import type { Category, CategoryId } from "@/lib/types";
 
+// いまは既定の言語だけ（言語を足したらルートの params から）
+const locale = defaultLocale;
+const t = getDictionary(locale);
+
 export const metadata: Metadata = pageMetadata({
-  title: "お酒の分類",
-  description: "銘柄を知らなくても、分類がわかれば肴は選べます。それぞれの分類の特徴と、基本の合わせ方をまとめました。",
-  path: "/categories",
+  title: t.categoriesPage.title,
+  description: t.categoriesPage.description,
+  path: paths.categories(locale),
+  locale,
 });
 
 /**
  * guide: "custom" の大分類の専用ガイド。大分類を custom にしたらここに登録する
  * （登録がなければビルドが止まる）。summary は上の移動タイルに出す一言。
  */
-const CUSTOM_GUIDES: Partial<Record<CategoryId, { summary: string; Guide: ComponentType }>> = {
-  sake: { summary: "香味の4タイプ", Guide: SakeGuide },
+const CUSTOM_GUIDES: Partial<
+  Record<CategoryId, { summary: (d: Dictionary) => string; Guide: ComponentType<{ locale: Locale }> }>
+> = {
+  sake: { summary: (d) => d.categoriesPage.sakeSummary, Guide: SakeGuide },
 };
 
 function customGuide(category: Category) {
@@ -39,7 +48,10 @@ export default function CategoriesPage() {
   ];
   const jump = ordered.map((c) => ({
     ...c,
-    summary: c.guide === "custom" ? customGuide(c).summary : `${getSubCategories(c.id).length}分類`,
+    summary:
+      c.guide === "custom"
+        ? customGuide(c).summary(t)
+        : format(t.categoriesPage.subCount, { count: getSubCategories(c.id).length }),
   }));
   // モバイルの固定タブは 5 つまで等分、それ以上は横スクロール
   const tabsFit = jump.length <= 5;
@@ -48,7 +60,7 @@ export default function CategoriesPage() {
     <div className="flex flex-col">
       {/* モバイル：分類タブをヘッダーの下に固定 */}
       <nav
-        aria-label="分類へ移動"
+        aria-label={t.categoriesPage.jump}
         style={tabsFit ? { gridTemplateColumns: `repeat(${jump.length}, minmax(0, 1fr))` } : undefined}
         className={`sticky top-[61px] z-10 border-b border-line bg-bg md:hidden ${tabsFit ? "grid" : "flex overflow-x-auto"}`}
       >
@@ -67,12 +79,12 @@ export default function CategoriesPage() {
       <section className="mx-auto flex w-full max-w-[1200px] flex-col gap-7 px-5 pb-7 pt-8 md:px-6 md:pb-10 md:pt-14">
         <div className="flex max-w-[720px] flex-col gap-2.5">
           <p className="text-xs font-bold tracking-[0.2em] text-accent md:text-sm">CATEGORIES</p>
-          <h1 className="text-[30px] font-black md:text-[44px]">お酒の分類</h1>
+          <h1 className="text-[30px] font-black md:text-[44px]">{t.categoriesPage.title}</h1>
           <p className="text-[15px] leading-[1.9] text-muted md:text-[17px]">
-            銘柄を知らなくても、分類がわかれば肴は選べます。それぞれの分類の特徴と、基本の合わせ方をまとめました。
+            {t.categoriesPage.description}
           </p>
         </div>
-        <nav aria-label="分類へ移動" className="hidden grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 md:grid">
+        <nav aria-label={t.categoriesPage.jump} className="hidden grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-3 md:grid">
           {jump.map((c) => (
             <a
               key={c.id}
@@ -83,7 +95,7 @@ export default function CategoriesPage() {
               <span className="flex flex-col">
                 <span className="text-lg font-black">{c.name}</span>
                 <span className="text-xs tracking-[0.15em] text-subtle">
-                  {c.nameEn} ・ {c.summary}
+                  {[c.nameEn, c.summary].join(t.common.sep)}
                 </span>
               </span>
             </a>
@@ -95,7 +107,7 @@ export default function CategoriesPage() {
         const Guide = c.guide === "custom" ? customGuide(c).Guide : null;
         return (
           <GuideSection key={c.id} category={c} last={i === ordered.length - 1}>
-            {Guide ? <Guide /> : <SubcategoryGuide category={c} />}
+            {Guide ? <Guide locale={locale} /> : <SubcategoryGuide category={c} locale={locale} />}
           </GuideSection>
         );
       })}

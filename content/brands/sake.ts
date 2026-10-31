@@ -1,4 +1,4 @@
-import type { BrandInput } from "@/lib/types";
+import type { BrandSource } from "@/lib/types";
 
 export const sakeBrands = [
   {
@@ -10,7 +10,7 @@ export const sakeBrands = [
     region: "山口",
     taste: "華やかな吟醸香と、フルーティでやわらかな甘み。",
     tags: ["華やか", "フルーティ", "やわらか"],
-    tastes: ["華やか", "甘み"],
+    tastes: ["floral", "sweet"],
     serves: [{ serveId: "chilled", how: "10℃前後・ワイングラスで" }],
     recommendedServe: "chilled",
     pairings: [
@@ -29,7 +29,7 @@ export const sakeBrands = [
     region: "新潟",
     taste: "淡麗辛口。すっきりとして、食事の邪魔をしない。",
     tags: ["淡麗", "辛口", "食中酒"],
-    tastes: ["すっきり", "キレ"],
+    tastes: ["clean", "crisp"],
     serves: [{ serveId: "hiya" }, { serveId: "kan", how: "ぬる燗" }],
     recommendedServe: "hiya",
     pairings: [
@@ -48,7 +48,7 @@ export const sakeBrands = [
     region: "新潟",
     taste: "軽快でなめらか。冷やでも燗でもきれいに飲める。",
     tags: ["軽快", "なめらか", "燗映え"],
-    tastes: ["軽快", "すっきり"],
+    tastes: ["light", "clean"],
     serves: [{ serveId: "kan", how: "40〜45℃" }, { serveId: "hiya" }],
     recommendedServe: "kan",
     pairings: [
@@ -58,4 +58,4 @@ export const sakeBrands = [
     ],
     avoid: "スパイスの強いエスニック料理とは方向性が合いにくい。",
   },
-] satisfies BrandInput[];
+] satisfies BrandSource[];

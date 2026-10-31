@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { ReactNode } from "react";
+import { getDictionary, type Locale } from "./i18n";
 import { colors } from "./tokens";
 
 // OGP 画像（next/og の ImageResponse）用の共通部品。
@@ -42,7 +43,7 @@ export function OgGlyph({ char, size, color }: { char: "阿" | "吽"; size: numb
 }
 
 /** 上にロゴ、下にキャッチ。中身は children */
-export function OgFrame({ children }: { children: ReactNode }) {
+export function OgFrame({ children, locale }: { children: ReactNode; locale: Locale }) {
   return (
     <div
       style={{
@@ -84,7 +85,9 @@ export function OgFrame({ children }: { children: ReactNode }) {
           color: og.subtle,
         }}
       >
-        <div style={{ display: "flex", color: og.accent, letterSpacing: "0.2em" }}>酒と肴の、阿吽の呼吸。</div>
+        <div style={{ display: "flex", color: og.accent, letterSpacing: "0.2em" }}>
+          {getDictionary(locale).site.catch}
+        </div>
       </div>
     </div>
   );

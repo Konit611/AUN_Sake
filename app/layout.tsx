@@ -3,7 +3,8 @@ import { Zen_Antique, Zen_Kaku_Gothic_New } from "next/font/google";
 import { Suspense } from "react";
 import { HeaderView, SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
-import { FEED_ALTERNATES, SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
+import { defaultLocale, getDictionary, htmlLang, ogLocale } from "@/lib/i18n";
+import { feedAlternates, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
 // 日本語フォントは unicode-range で数百ファイルに分かれるので preload しない
@@ -23,35 +24,39 @@ const zenAntique = Zen_Antique({
   preload: false,
 });
 
+// いまは既定の言語だけ。言語を足すときはルートの分け方を変える（docs/plan/i18n.md）
+const locale = defaultLocale;
+const t = getDictionary(locale);
+
 export const metadata: Metadata = {
   metadataBase: SITE_URL,
   title: {
-    default: SITE_TITLE,
-    template: "%s | AUN",
+    default: t.site.title,
+    template: `%s | ${SITE_NAME}`,
   },
-  description: SITE_DESCRIPTION,
+  description: t.site.description,
   openGraph: {
     siteName: SITE_NAME,
-    locale: "ja_JP",
+    locale: ogLocale[locale],
     type: "website",
   },
   // 画像は各ルートの opengraph-image.tsx（X は og:image を使う）
   twitter: { card: "summary_large_image" },
-  alternates: { types: FEED_ALTERNATES },
+  alternates: { types: feedAlternates(locale) },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="ja"
+      lang={htmlLang[locale]}
       className={`${zenKaku.variable} ${zenAntique.variable} h-full antialiased`}
     >
       <body className="group/page min-h-full flex flex-col font-sans">
-        <Suspense fallback={<HeaderView pathname={null} />}>
-          <SiteHeader />
+        <Suspense fallback={<HeaderView pathname={null} locale={locale} />}>
+          <SiteHeader locale={locale} />
         </Suspense>
         <main className="flex-1">{children}</main>
-        <SiteFooter />
+        <SiteFooter locale={locale} />
       </body>
     </html>
   );

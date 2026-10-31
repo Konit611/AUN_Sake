@@ -8,12 +8,19 @@ import {
   getPairings,
   getSubCategory,
 } from "@/lib/data";
+import { defaultLocale, getDictionary } from "@/lib/i18n";
+import { paths } from "@/lib/routes";
 import { pageMetadata } from "@/lib/site";
 
+// いまは既定の言語だけ（言語を足したらルートの params から）
+const locale = defaultLocale;
+const t = getDictionary(locale);
+
 export const metadata: Metadata = pageMetadata({
-  title: "銘柄から探す",
-  description: "いつも飲んでいる一本、気になっている一本から、息の合う肴を見つけましょう。",
-  path: "/brands",
+  title: t.brandsPage.title,
+  description: t.brandsPage.description,
+  path: paths.brands(locale),
+  locale,
 });
 
 export default function BrandsPage() {
@@ -45,12 +52,12 @@ export default function BrandsPage() {
     <div className="mx-auto flex max-w-[1200px] flex-col gap-4 pb-10 pt-7 md:gap-6 md:px-6 md:pb-20 md:pt-14">
       <div className="flex flex-col gap-1.5 px-5 md:gap-2.5 md:px-0">
         <p className="text-xs font-bold tracking-[0.2em] text-accent md:text-sm">BRANDS</p>
-        <h1 className="text-[30px] font-black md:text-[44px]">銘柄から探す</h1>
+        <h1 className="text-[30px] font-black md:text-[44px]">{t.brandsPage.title}</h1>
         <p className="hidden text-base text-muted md:block">
-          いつも飲んでいる一本、気になっている一本から、息の合う肴を見つけましょう。
+          {t.brandsPage.description}
         </p>
       </div>
-      <BrandExplorer brands={brands} kinds={kinds} />
+      <BrandExplorer brands={brands} kinds={kinds} locale={locale} />
     </div>
   );
 }

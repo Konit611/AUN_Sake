@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { getBrandsBySubCategory, getSubCategories } from "@/lib/data";
 import type { Category } from "@/lib/types";
+import { format, getDictionary, type Locale } from "@/lib/i18n";
+import { paths } from "@/lib/routes";
 import { Glyph } from "../ui";
 import { anchorOffset } from "./GuideSection";
 
@@ -8,7 +10,8 @@ import { anchorOffset } from "./GuideSection";
 const CHIP_LIMIT = 8;
 
 /** guide: "subcategories" の大分類。小分類ごとに 産地など・特徴（阿）・合う料理（吽）・銘柄 */
-export function SubcategoryGuide({ category }: { category: Category }) {
+export function SubcategoryGuide({ category, locale }: { category: Category; locale: Locale }) {
+  const t = getDictionary(locale);
   return (
     <div className="grid grid-cols-1 gap-3 md:grid-cols-[repeat(auto-fill,minmax(330px,1fr))] md:gap-4">
       {getSubCategories(category.id).map((s) => {
@@ -39,11 +42,11 @@ export function SubcategoryGuide({ category }: { category: Category }) {
               </p>
             )}
             {brands.length + examples.length > 0 && (
-              <ul aria-label={`${s.name}の銘柄`} className="flex gap-1.5 overflow-x-auto md:flex-wrap md:overflow-visible">
+              <ul aria-label={format(t.categoryPage.brandsOf, { name: s.name })} className="flex gap-1.5 overflow-x-auto md:flex-wrap md:overflow-visible">
                 {brands.map((b) => (
                   <li key={b.slug} className="flex-none">
                     <Link
-                      href={`/brands/${b.slug}`}
+                      href={paths.brand(b.slug, locale)}
                       className="flex min-h-9 items-center whitespace-nowrap rounded-full border border-line-strong px-3 text-[13px] text-fg-2 hover:border-subtle hover:text-fg"
                     >
                       {b.name}
@@ -53,10 +56,10 @@ export function SubcategoryGuide({ category }: { category: Category }) {
                 {all.length > brands.length && (
                   <li className="flex-none">
                     <Link
-                      href={`/categories/${s.id}`}
+                      href={paths.category(s.id, locale)}
                       className="flex min-h-9 items-center whitespace-nowrap rounded-full border border-dashed border-line-strong px-3 text-[13px] font-bold text-accent hover:border-accent"
                     >
-                      すべて（{all.length}）→
+                      {format(t.common.seeAllChip, { count: all.length })}
                     </Link>
                   </li>
                 )}

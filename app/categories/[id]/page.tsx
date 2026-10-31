@@ -15,8 +15,14 @@ import {
   getSubCategoriesWithBrands,
   getSubCategory,
 } from "@/lib/data";
+import { defaultLocale, format, getDictionary } from "@/lib/i18n";
+import { paths } from "@/lib/routes";
 import { pageMetadata } from "@/lib/site";
 import type { Brand, Category, SubCategory } from "@/lib/types";
+
+// いまは既定の言語だけ（言語を足したらルートの params から）
+const locale = defaultLocale;
+const t = getDictionary(locale);
 
 // /categories/shochu（大分類）と /categories/imo-shochu（小分類）を同じルートで扱う。
 // id が重ならないことは lib/validate.ts で確認している。
@@ -54,8 +60,9 @@ export async function generateMetadata({
   const name = view.kind === "sub" ? view.sub.name : view.category.name;
   return pageMetadata({
     title: name,
-    description: `${name}の銘柄と、息の合う肴。`,
-    path: `/categories/${id}`,
+    description: format(t.categoryPage.description, { name }),
+    path: paths.category(id, locale),
+    locale,
   });
 }
 
@@ -67,19 +74,19 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
   const { category, brands } = view;
   const subs = getSubCategoriesWithBrands(category.id);
   const crumbs: Crumb[] = [
-    { label: "ホーム", href: "/" },
-    { label: "お酒の分類", href: "/categories" },
-    { label: category.name, href: `/categories/${category.id}` },
+    { label: t.common.home, href: paths.home(locale) },
+    { label: t.categoriesPage.title, href: paths.categories(locale) },
+    { label: category.name, href: paths.category(category.id, locale) },
     ...(view.kind === "sub" ? [{ label: view.sub.name }] : []),
   ];
   const tabs = [
-    { id: category.id, name: "すべて" },
+    { id: category.id, name: t.common.all },
     ...subs.map((s) => ({ id: s.id, name: s.name })),
   ];
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-5 pb-12 pt-2 md:gap-10 md:px-6 md:pb-20">
-      <Breadcrumbs items={crumbs} />
+      <Breadcrumbs items={crumbs} locale={locale} />
 
       <div className="flex flex-col gap-3">
         <SectionHeading
@@ -87,22 +94,22 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
           eyebrow={category.nameEn}
           title={view.kind === "sub" ? view.sub.name : category.name}
         />
-        <p className="text-sm text-muted md:text-[15px]">{brands.length}銘柄</p>
+        <p className="text-sm text-muted md:text-[15px]">{format(t.common.brandCount, { count: brands.length })}</p>
       </div>
 
       {subs.length > 1 && (
-        <nav aria-label={`${category.name}の分類`} className="-mx-5 md:mx-0">
+        <nav aria-label={format(t.categoryPage.tabs, { name: category.name })} className="-mx-5 md:mx-0">
           <ul className="flex gap-2 overflow-x-auto px-5 pb-1 md:flex-wrap md:overflow-visible md:px-0 md:pb-0">
-            {tabs.map((t) => {
-              const on = t.id === id;
+            {tabs.map((tab) => {
+              const on = tab.id === id;
               return (
-                <li key={t.id} className="flex-none">
+                <li key={tab.id} className="flex-none">
                   <Link
-                    href={`/categories/${t.id}`}
+                    href={paths.category(tab.id, locale)}
                     aria-current={on ? "page" : undefined}
                     className={chipClass(on)}
                   >
-                    {t.name}
+                    {tab.name}
                   </Link>
                 </li>
               );
@@ -111,12 +118,13 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
         </nav>
       )}
 
-      <ShowMore className={brandGridClass}>
+      <ShowMore className={brandGridClass} locale={locale}>
         {brands.map((b) => {
           const best = getPairings(b.slug)[0];
           return (
             <li key={b.slug}>
               <BrandCard
+                locale={locale}
                 b={{
                   slug: b.slug,
                   name: b.name,

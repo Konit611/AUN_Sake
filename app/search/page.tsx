@@ -17,10 +17,16 @@ import {
   getSubCategory,
 } from "@/lib/data";
 import { normalize, type SearchEntry } from "@/lib/search";
+import { defaultLocale, format, getDictionary } from "@/lib/i18n";
+import { paths } from "@/lib/routes";
 import { pageMetadata } from "@/lib/site";
 
+// いまは既定の言語だけ（言語を足したらルートの params から）
+const locale = defaultLocale;
+const t = getDictionary(locale);
+
 export const metadata: Metadata = {
-  ...pageMetadata({ title: "検索", path: "/search" }),
+  ...pageMetadata({ title: t.searchPage.title, path: paths.search(locale), locale }),
   // 結果はクライアントで出すので、検索ページ自体は索引に載せない
   robots: { index: false },
 };
@@ -35,8 +41,8 @@ function buildIndex(): SearchEntry[] {
     return {
       kind: "brand",
       title: b.name,
-      detail: `${sub.name} ・ ${b.maker} ・ ${b.region}`,
-      href: `/brands/${b.slug}`,
+      detail: [sub.name, b.maker, b.region].join(t.common.sep),
+      href: paths.brand(b.slug, locale),
       haystack: haystack(
         b.name,
         b.kana,
@@ -61,8 +67,8 @@ function buildIndex(): SearchEntry[] {
     .map(({ f, count }) => ({
       kind: "food",
       title: f.name,
-      detail: `息の合うお酒 ${count}銘柄`,
-      href: `/foods/${f.slug}`,
+      detail: format(t.searchPage.foodDetail, { count }),
+      href: paths.food(f.slug, locale),
       haystack: haystack(f.name, f.kana),
     }));
 
@@ -70,15 +76,18 @@ function buildIndex(): SearchEntry[] {
     ...getCategoriesWithBrands().map((c) => ({
         kind: "category" as const,
         title: c.name,
-        detail: `${getBrandsByCategory(c.id).length}銘柄`,
-        href: `/categories/${c.id}`,
+        detail: format(t.common.brandCount, { count: getBrandsByCategory(c.id).length }),
+        href: paths.category(c.id, locale),
         haystack: haystack(c.name, c.nameEn, c.kana),
       })),
     ...getSubCategoriesWithBrands().map((s) => ({
         kind: "category" as const,
         title: s.name,
-        detail: `${getCategory(s.categoryId)!.name} ・ ${getBrandsBySubCategory(s.id).length}銘柄`,
-        href: `/categories/${s.id}`,
+        detail: [
+          getCategory(s.categoryId)!.name,
+          format(t.common.brandCount, { count: getBrandsBySubCategory(s.id).length }),
+        ].join(t.common.sep),
+        href: paths.category(s.id, locale),
         haystack: haystack(s.name, s.kana),
       })),
   ];
@@ -91,11 +100,14 @@ export default function SearchPage() {
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-5 pb-12 pt-2 md:gap-10 md:px-6 md:pb-20">
-      <Breadcrumbs items={[{ label: "ホーム", href: "/" }, { label: "検索" }]} />
-      <SectionHeading as="h1" eyebrow="SEARCH" title="銘柄・肴・分類を探す" />
+      <Breadcrumbs
+        items={[{ label: t.common.home, href: paths.home(locale) }, { label: t.searchPage.title }]}
+        locale={locale}
+      />
+      <SectionHeading as="h1" eyebrow="SEARCH" title={t.searchPage.heading} />
       {/* useSearchParams を使うので Suspense で囲む */}
       <Suspense fallback={<div className="h-14 rounded-2xl border-2 border-line-strong" />}>
-        <SearchBox entries={entries} />
+        <SearchBox entries={entries} locale={locale} />
       </Suspense>
     </div>
   );

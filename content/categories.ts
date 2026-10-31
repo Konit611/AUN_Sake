@@ -1,7 +1,7 @@
-import type { Category, SubCategory } from "@/lib/types";
+import type { CategorySource, SubCategorySource } from "@/lib/types";
 
 // 配列の順番がそのまま表示順（「お酒の分類」ページでは guide: "custom" のものを最後に出す）
-export const categories: Category[] = [
+export const categories: CategorySource[] = [
   {
     id: "shochu",
     name: "焼酎",
@@ -43,7 +43,7 @@ export const categories: Category[] = [
 ];
 
 // examples：まだ銘柄ページがない代表銘柄。銘柄を登録したらここから消す
-export const subCategories: SubCategory[] = [
+export const subCategories: SubCategorySource[] = [
   {
     id: "imo-shochu",
     categoryId: "shochu",

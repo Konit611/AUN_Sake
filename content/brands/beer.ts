@@ -1,4 +1,4 @@
-import type { BrandInput } from "@/lib/types";
+import type { BrandSource } from "@/lib/types";
 
 export const beerBrands = [
   {
@@ -9,7 +9,7 @@ export const beerBrands = [
     region: "日本",
     taste: "辛口で、すっきりとしたキレ。強めの炭酸が特徴。",
     tags: ["辛口", "キレ", "強炭酸"],
-    tastes: ["キレ", "すっきり"],
+    tastes: ["crisp", "clean"],
     serves: [{ serveId: "jug", how: "よく冷やして" }],
     recommendedServe: "jug",
     pairings: [
@@ -28,7 +28,7 @@ export const beerBrands = [
     region: "日本",
     taste: "麦のうまみと、さわやかな後味のバランス型。",
     tags: ["麦のうまみ", "バランス", "爽やか"],
-    tastes: ["コク", "すっきり"],
+    tastes: ["rich", "clean"],
     serves: [{ serveId: "glass", how: "泡を3割ほどのせて" }],
     recommendedServe: "glass",
     pairings: [
@@ -47,7 +47,7 @@ export const beerBrands = [
     region: "日本",
     taste: "最初に流れ出る麦汁だけを使う「一番搾り製法」。雑味が少なく、麦のうまみが澄んでいる。",
     tags: ["麦のうまみ", "澄んだ味", "やわらか"],
-    tastes: ["コク", "すっきり"],
+    tastes: ["rich", "clean"],
     serves: [{ serveId: "glass", how: "よく冷やして" }],
     recommendedServe: "glass",
     pairings: [
@@ -66,7 +66,7 @@ export const beerBrands = [
     region: "日本",
     taste: "麦芽100%の深いコクと、上品な苦み。",
     tags: ["コク", "麦芽100%", "上品な苦み"],
-    tastes: ["コク"],
+    tastes: ["rich"],
     serves: [{ serveId: "glass", how: "ゆっくり" }],
     recommendedServe: "glass",
     pairings: [
@@ -85,7 +85,7 @@ export const beerBrands = [
     region: "長野",
     taste: "アメリカンペールエール。柑橘のようなホップの香りと、しっかりした麦芽のコク。",
     tags: ["柑橘のホップ香", "エール", "コク"],
-    tastes: ["華やか", "コク"],
+    tastes: ["floral", "rich"],
     serves: [{ serveId: "glass", how: "冷やしすぎずに" }],
     recommendedServe: "glass",
     pairings: [
@@ -95,4 +95,4 @@ export const beerBrands = [
     ],
     avoid: "繊細な刺身は、ホップの香りが勝ってしまう。",
   },
-] satisfies BrandInput[];
+] satisfies BrandSource[];

@@ -6,7 +6,13 @@ import { NoteCard } from "@/components/NoteCard";
 import { Glyph, PairingBadge, PhotoPlaceholder } from "@/components/ui";
 import { getBrand, getFood, getNote, getNotes, getPairings, getRelatedNotes, getSubCategory } from "@/lib/data";
 import { pairingId } from "@/lib/types";
+import { defaultLocale, format, formatDate, getDictionary } from "@/lib/i18n";
+import { paths } from "@/lib/routes";
 import { pageMetadata } from "@/lib/site";
+
+// いまは既定の言語だけ（言語を足したらルートの params から）
+const locale = defaultLocale;
+const t = getDictionary(locale);
 
 export function generateStaticParams() {
   return getNotes().map((n) => ({ slug: n.slug }));
@@ -21,9 +27,10 @@ export async function generateMetadata({
   return pageMetadata({
     title: note.title,
     description: note.lead ?? note.quote,
-    path: `/notes/${note.slug}`,
+    path: paths.note(note.slug, locale),
     type: "article",
-    image: `/notes/${note.slug}/opengraph-image`,
+    image: `${paths.note(note.slug, locale)}/opengraph-image`,
+    locale,
   });
 }
 
@@ -44,9 +51,10 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-6 px-5 pb-12 pt-2 md:gap-10 md:px-6 md:pb-20">
       <Breadcrumbs
+        locale={locale}
         items={[
-          { label: "ホーム", href: "/" },
-          { label: "ペアリングノート", href: "/notes" },
+          { label: t.common.home, href: paths.home(locale) },
+          { label: t.notesPage.title, href: paths.notes(locale) },
           { label: note.title },
         ]}
       />
@@ -62,11 +70,12 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
             {note.title}
           </h1>
           <p className="text-xs text-subtle md:text-sm">
-            <time dateTime={note.publishedAt}>{note.publishedAt.replaceAll("-", ".")}</time> ・{" "}
+            <time dateTime={note.publishedAt}>{formatDate(note.publishedAt, locale)}</time>
+            {t.common.sep}
             {note.author}
           </p>
           <PhotoPlaceholder
-            label={`[写真：${brand.name}と${food.name}]`}
+            label={format(t.common.photoPair, { brand: brand.name, food: food.name })}
             className="-mx-5 h-[220px] md:mx-0 md:h-[380px] md:rounded-[20px]"
           />
           <div className="flex flex-col gap-4 md:gap-[22px]">
@@ -74,37 +83,37 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
           </div>
           {note.quote && (
             <div className="flex flex-col gap-1 rounded-[14px] bg-surface px-[18px] py-4 md:gap-1.5 md:rounded-2xl md:px-6 md:py-[22px]">
-              <p className="text-[13px] font-bold text-accent md:text-sm">阿吽のひとこと</p>
+              <p className="text-[13px] font-bold text-accent md:text-sm">{t.common.oneWord}</p>
               <p className="text-fg">{note.quote}</p>
             </div>
           )}
         </article>
 
         <aside
-          aria-label="この組み合わせ"
+          aria-label={t.notePage.pairing}
           className="flex min-w-0 flex-col gap-3 md:sticky md:top-6 md:flex-[1_1_300px]"
         >
-          <h2 className="text-base font-bold">この組み合わせ</h2>
+          <h2 className="text-base font-bold">{t.notePage.pairing}</h2>
           <Link
-            href={`/brands/${brand.slug}`}
+            href={paths.brand(brand.slug, locale)}
             className="flex flex-col gap-2 rounded-[18px] border-2 border-line-strong bg-surface p-5 text-fg hover:border-subtle"
           >
             <div className="flex items-center gap-2.5">
               <Glyph char="阿" className="text-[28px]" />
               <span className="text-xs tracking-[0.2em] text-muted">
-                {getSubCategory(brand.subCategoryId)!.name} ・ {brand.region}
+                {[getSubCategory(brand.subCategoryId)!.name, brand.region].join(t.common.sep)}
               </span>
             </div>
             <p className="text-xl font-black">{brand.name}</p>
             <p className="text-sm leading-[1.7] text-muted">{brand.taste}</p>
-            <span className="pt-1 text-sm font-bold text-accent">銘柄ページを見る →</span>
+            <span className="pt-1 text-sm font-bold text-accent">{t.common.toBrandPage}</span>
           </Link>
           {pairing && (
             <div className="flex flex-col gap-2 rounded-[18px] border-2 border-accent bg-bg p-5">
               <div className="flex items-center gap-2.5">
                 <Glyph char="吽" className="text-[28px] text-accent" />
-                <PairingBadge level={pairing.level} />
-                <Link href={`/foods/${food.slug}`} className="text-base font-bold hover:text-accent-soft">
+                <PairingBadge level={pairing.level} locale={locale} />
+                <Link href={paths.food(food.slug, locale)} className="text-base font-bold hover:text-accent-soft">
                   {food.name}
                 </Link>
               </div>
@@ -116,15 +125,16 @@ export default async function NotePage({ params }: PageProps<"/notes/[slug]">) {
 
       {related.length > 0 && (
         <section className="flex flex-col gap-4 border-t border-line pt-8 md:gap-6 md:pt-12">
-          <h2 className="text-xl font-black md:text-2xl">関連するノート</h2>
+          <h2 className="text-xl font-black md:text-2xl">{t.notePage.related}</h2>
           <ul className="grid grid-cols-1 gap-4 md:grid-cols-3 md:gap-5">
             {related.map((n) => (
               <li key={n.slug} className="grid">
                 <NoteCard
-                  href={`/notes/${n.slug}`}
+                  href={paths.note(n.slug, locale)}
                   title={n.title}
                   brandName={getBrand(n.brandSlug)!.name}
                   foodName={getFood(n.foodSlug)!.name}
+                  locale={locale}
                 />
               </li>
             ))}

@@ -1,9 +1,13 @@
 import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
+import { defaultLocale, getDictionary } from "@/lib/i18n";
 import { fitFontSize, og, OgFrame, ogContentType, ogFonts, OgGlyph, ogSize } from "@/lib/og";
 import { getBrand, getFood, getNote, getNotes } from "@/lib/data";
 
-export const alt = "AUN のペアリングノート";
+const locale = defaultLocale;
+const t = getDictionary(locale);
+
+export const alt = t.og.noteAlt;
 export const size = ogSize;
 export const contentType = ogContentType;
 
@@ -21,7 +25,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
   return new ImageResponse(
     (
-      <OgFrame>
+      <OgFrame locale={locale}>
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ display: "flex", fontSize: 26, color: og.accent, letterSpacing: "0.2em" }}>
             PAIRING NOTE

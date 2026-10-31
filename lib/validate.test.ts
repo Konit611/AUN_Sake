@@ -19,8 +19,8 @@ function fixture() {
     { id: "oyuwari", name: "お湯割り" },
   ];
   const foods: Food[] = [
-    { slug: "kakuni", name: "豚の角煮", genres: ["肉料理"] },
-    { slug: "tempura", name: "天ぷら", genres: ["揚げ物"] },
+    { slug: "kakuni", name: "豚の角煮", genres: ["meat"] },
+    { slug: "tempura", name: "天ぷら", genres: ["fried"] },
   ];
   const brands: BrandInput[] = [
     {
@@ -31,7 +31,7 @@ function fixture() {
       region: "宮崎",
       taste: "",
       tags: [],
-      tastes: ["甘み"],
+      tastes: ["sweet"],
       tasteChart: { sweetness: 4, aroma: 3, kire: 4, koku: 3 },
       serves: [{ serveId: "oyuwari" }, { serveId: "rock" }],
       recommendedServe: "oyuwari",
@@ -46,7 +46,7 @@ function fixture() {
       region: "山梨",
       taste: "",
       tags: [],
-      tastes: ["すっきり"],
+      tastes: ["clean"],
       serves: [{ serveId: "rock" }],
       recommendedServe: "rock",
       pairings: [{ food: "tempura", level: "aun", why: "" }],

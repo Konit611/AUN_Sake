@@ -1,6 +1,7 @@
 "use client";
 
 import { Children, useState, type ReactNode } from "react";
+import { format, getDictionary, type Locale } from "@/lib/i18n";
 
 /**
  * <li> の並びを先頭 step 件だけ描画し、「もっと見る」で step 件ずつ足す。
@@ -11,10 +12,12 @@ export function ShowMore({
   children,
   step = 24,
   className,
+  locale,
 }: {
   children: ReactNode;
   step?: number;
   className?: string;
+  locale: Locale;
 }) {
   const items = Children.toArray(children);
   const [shown, setShown] = useState(step);
@@ -29,7 +32,7 @@ export function ShowMore({
           onClick={() => setShown(shown + step)}
           className="mx-auto flex min-h-11 cursor-pointer items-center rounded-full border-2 border-line-strong px-6 text-[15px] font-bold text-fg hover:border-subtle"
         >
-          もっと見る（残り{rest}）
+          {format(getDictionary(locale).common.showMore, { count: rest })}
         </button>
       )}
     </>

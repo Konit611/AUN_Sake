@@ -1,4 +1,4 @@
-import type { BrandInput } from "@/lib/types";
+import type { BrandSource } from "@/lib/types";
 
 export const wineBrands = [
   {
@@ -11,7 +11,7 @@ export const wineBrands = [
     region: "山梨",
     taste: "日本固有品種・甲州から造る白。柑橘のような繊細な香りと、すっきりした酸。",
     tags: ["繊細", "柑橘", "すっきり"],
-    tastes: ["すっきり", "華やか"],
+    tastes: ["clean", "floral"],
     serves: [{ serveId: "wine-glass", how: "8〜10℃によく冷やして" }],
     recommendedServe: "wine-glass",
     pairings: [
@@ -29,7 +29,7 @@ export const wineBrands = [
     region: "チリ",
     taste: "カシスのような黒い果実の香りと、しっかりしたタンニン。",
     tags: ["黒果実", "タンニン", "力強い"],
-    tastes: ["コク"],
+    tastes: ["rich"],
     serves: [{ serveId: "wine-glass", how: "16〜18℃・大きめのグラスで" }],
     recommendedServe: "wine-glass",
     pairings: [
@@ -47,7 +47,7 @@ export const wineBrands = [
     region: "フランス",
     taste: "きめ細かな泡に、青りんごや柑橘、ブリオッシュの香り。",
     tags: ["泡", "辛口", "華やか"],
-    tastes: ["キレ", "華やか"],
+    tastes: ["crisp", "floral"],
     serves: [{ serveId: "flute", how: "よく冷やして" }],
     recommendedServe: "flute",
     pairings: [
@@ -57,4 +57,4 @@ export const wineBrands = [
     ],
     avoid: "甘いデザートと合わせると、辛口の酸味が強く感じられる。",
   },
-] satisfies BrandInput[];
+] satisfies BrandSource[];

@@ -3,17 +3,15 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
+import { format, getDictionary, type Locale } from "@/lib/i18n";
+import { paths } from "@/lib/routes";
 import { search, type SearchEntry } from "@/lib/search";
 
-const GROUPS: { kind: SearchEntry["kind"]; label: string }[] = [
-  { kind: "brand", label: "お酒" },
-  { kind: "food", label: "肴" },
-  { kind: "category", label: "分類" },
-];
+const GROUP_ORDER: SearchEntry["kind"][] = ["brand", "food", "category"];
 
-const EXAMPLES = ["芋焼酎", "くろきりしま", "餃子", "辛口", "新潟"];
-
-export function SearchBox({ entries }: { entries: SearchEntry[] }) {
+export function SearchBox({ entries, locale }: { entries: SearchEntry[]; locale: Locale }) {
+  const t = getDictionary(locale).searchPage;
+  const examples = t.examples.split(",");
   const params = useSearchParams();
   const [query, setQuery] = useState(params.get("q") ?? "");
   const results = search(entries, query);
@@ -21,7 +19,7 @@ export function SearchBox({ entries }: { entries: SearchEntry[] }) {
   const update = (q: string) => {
     setQuery(q);
     // 共有・戻るで同じ結果になるよう URL にも反映（履歴は積まない）
-    const url = q ? `/search?q=${encodeURIComponent(q)}` : "/search";
+    const url = paths.search(locale, q);
     window.history.replaceState(null, "", url);
   };
 
@@ -29,7 +27,7 @@ export function SearchBox({ entries }: { entries: SearchEntry[] }) {
     <div className="flex flex-col gap-6 md:gap-8">
       <form role="search" onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-2">
         <label htmlFor="q" className="text-sm font-medium text-muted">
-          銘柄名・よみ・肴・産地・味わいで探す
+          {t.label}
         </label>
         <div className="relative">
           <svg
@@ -53,7 +51,7 @@ export function SearchBox({ entries }: { entries: SearchEntry[] }) {
             autoComplete="off"
             value={query}
             onChange={(e) => update(e.target.value)}
-            placeholder="例：黒霧島、ぎょうざ、辛口"
+            placeholder={t.placeholder}
             className="h-14 w-full rounded-2xl border-2 border-line-strong bg-surface pl-12 pr-4 text-base text-fg placeholder:text-subtle focus:border-accent focus:outline-none md:text-lg [&::-webkit-search-cancel-button]:appearance-none"
           />
         </div>
@@ -61,9 +59,9 @@ export function SearchBox({ entries }: { entries: SearchEntry[] }) {
 
       {query.trim() === "" ? (
         <div className="flex flex-col gap-3">
-          <p className="text-sm text-muted">たとえば</p>
+          <p className="text-sm text-muted">{t.examplesTitle}</p>
           <ul className="flex flex-wrap gap-2">
-            {EXAMPLES.map((ex) => (
+            {examples.map((ex) => (
               <li key={ex}>
                 <button
                   type="button"
@@ -80,10 +78,11 @@ export function SearchBox({ entries }: { entries: SearchEntry[] }) {
         <div className="flex flex-col gap-8">
           <p role="status" className="text-sm text-muted">
             {results.length > 0
-              ? `「${query.trim()}」の検索結果 ${results.length}件`
-              : `「${query.trim()}」に一致するものは見つかりませんでした`}
+              ? format(t.results, { q: query.trim(), count: results.length })
+              : format(t.noResults, { q: query.trim() })}
           </p>
-          {GROUPS.map(({ kind, label }) => {
+          {GROUP_ORDER.map((kind) => {
+            const label = t.groups[kind];
             const items = results.filter((r) => r.kind === kind);
             if (items.length === 0) return null;
             return (

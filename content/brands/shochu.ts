@@ -1,4 +1,4 @@
-import type { BrandInput } from "@/lib/types";
+import type { BrandSource } from "@/lib/types";
 
 export const shochuBrands = [
   {
@@ -10,7 +10,7 @@ export const shochuBrands = [
     region: "宮崎",
     taste: "黒麹仕込みの芋焼酎。トロッとした甘みと、キリッとした後口。",
     tags: ["芋の甘み", "黒麹", "キレ"],
-    tastes: ["甘み", "キレ"],
+    tastes: ["sweet", "crisp"],
     tasteChart: { sweetness: 4, aroma: 3, kire: 4, koku: 3 },
     serves: [
       { serveId: "oyuwari", how: "焼酎6：お湯4", note: "芋の甘い香りがふわりと立つ、いちばんの飲み方。" },
@@ -34,7 +34,7 @@ export const shochuBrands = [
     region: "宮崎",
     taste: "紫芋で仕込む芋焼酎。果実のような甘い香りと、まろやかな口当たり。",
     tags: ["紫芋", "果実の香り", "まろやか"],
-    tastes: ["甘み", "華やか"],
+    tastes: ["sweet", "floral"],
     serves: [
       { serveId: "oyuwari", how: "焼酎6：お湯4", note: "甘い香りがふくらみ、まろやかさが増す。" },
       { serveId: "rock", how: "大きめの氷で", note: "冷えて甘みが締まり、果実のような香りがすっと立つ。" },
@@ -56,7 +56,7 @@ export const shochuBrands = [
     region: "鹿児島",
     taste: "芋のクセが穏やかで、果実のように華やかで軽やかな香り。芋焼酎が初めてでも飲みやすい。",
     tags: ["フルーティ", "軽やか", "クセが穏やか"],
-    tastes: ["華やか", "軽快"],
+    tastes: ["floral", "light"],
     serves: [
       { serveId: "rock", how: "大きめの氷で", note: "華やかな香りがいちばんわかりやすい飲み方。" },
       { serveId: "mizuwari", how: "焼酎6：水4", note: "さらに軽やかになり、食事と長く付き合える。" },
@@ -77,7 +77,7 @@ export const shochuBrands = [
     region: "大分",
     taste: "軽やかで、ほのかに香ばしい麦の風味。クセが少なく食中酒向き。",
     tags: ["軽快", "麦の香ばしさ", "すっきり"],
-    tastes: ["軽快", "すっきり"],
+    tastes: ["light", "clean"],
     serves: [{ serveId: "soda" }, { serveId: "mizuwari" }],
     recommendedServe: "soda",
     pairings: [
@@ -95,7 +95,7 @@ export const shochuBrands = [
     region: "韓国",
     taste: "竹炭ろ過のすっきりした飲み口に、ほのかな甘み。冷やしてストレートで。",
     tags: ["すっきり", "ほのかな甘み", "冷やして"],
-    tastes: ["すっきり", "甘み"],
+    tastes: ["clean", "sweet"],
     serves: [{ serveId: "straight", how: "よく冷やして" }],
     recommendedServe: "straight",
     pairings: [
@@ -105,4 +105,4 @@ export const shochuBrands = [
     ],
     avoid: "甘いデザートは、アルコールの苦みが目立ちやすい。",
   },
-] satisfies BrandInput[];
+] satisfies BrandSource[];

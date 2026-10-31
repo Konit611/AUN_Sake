@@ -1,8 +1,8 @@
-import type { PairingNote } from "@/lib/types";
+import type { PairingNoteSource } from "@/lib/types";
 
 // 本文は content/notes/<slug>.mdx。新しい順に並べる。
 // lead（要約）は銘柄ページの抜粋・一覧・RSS に出る。先に書いておくときは draft: true
-export const notes: PairingNote[] = [
+export const notes: PairingNoteSource[] = [
   {
     slug: "kurokirishima-kakuni",
     title: "お湯割りの甘みと、角煮の脂が溶け合う理由",
