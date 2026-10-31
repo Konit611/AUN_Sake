@@ -4,9 +4,10 @@ import { validateContent } from "./validate";
 
 // 最小限の正しいデータ。各テストで一部だけ壊して、狙ったエラーが出ることを確かめる
 function fixture() {
+  const look = { tint: "#000", stroke: "#fff", icon: "bottle" } as const;
   const categories: Category[] = [
-    { id: "shochu", name: "焼酎", nameEn: "SHOCHU", glyph: "焼", lead: "" },
-    { id: "wine", name: "ワイン", nameEn: "WINE", glyph: "葡", lead: "" },
+    { id: "shochu", name: "焼酎", nameEn: "SHOCHU", glyph: "焼", lead: "", guide: "subcategories", look },
+    { id: "wine", name: "ワイン", nameEn: "WINE", glyph: "葡", lead: "", guide: "subcategories", look },
   ];
   const subCategories: SubCategory[] = [
     { id: "imo", categoryId: "shochu", name: "芋焼酎", examples: ["魔王"] },

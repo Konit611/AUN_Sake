@@ -1,6 +1,6 @@
 import type { Category, SubCategory } from "@/lib/types";
 
-// 配列の順番がそのまま表示順（「お酒の分類」ページでは日本酒だけ最後に別枠で出す）
+// 配列の順番がそのまま表示順（「お酒の分類」ページでは guide: "custom" のものを最後に出す）
 export const categories: Category[] = [
   {
     id: "shochu",
@@ -9,6 +9,8 @@ export const categories: Category[] = [
     kana: "しょうちゅう",
     glyph: "焼",
     lead: "原料で香りと味わいが大きく変わる蒸留酒。お湯割り・ロック・水割り・ソーダ割りと飲み方の幅が広く、飲み方によって合う肴も変わります。",
+    guide: "subcategories",
+    look: { tint: "#22384A", stroke: "#6F879B", icon: "bottle" },
   },
   {
     id: "beer",
@@ -16,6 +18,8 @@ export const categories: Category[] = [
     nameEn: "BEER",
     glyph: "麦",
     lead: "日本の大手ビールの多くは、キレのあるラガー。そこにコクのあるオールモルト、香り豊かなエール、ロースト香の黒ビールが加わります。",
+    guide: "subcategories",
+    look: { tint: "#3A3528", stroke: "#8E8466", icon: "mug" },
   },
   {
     id: "sake",
@@ -24,6 +28,8 @@ export const categories: Category[] = [
     kana: "にほんしゅ",
     glyph: "米",
     lead: "日本酒は「香りの高さ」と「味の濃さ」の2軸で4タイプに分けると、肴が選びやすくなります。特定名称（大吟醸・純米など）は造り方の分類なので、下の表もあわせて。",
+    guide: "custom",
+    look: { tint: "#263347", stroke: "#6F879B", icon: "tokkuri" },
   },
   {
     id: "wine",
@@ -31,6 +37,8 @@ export const categories: Category[] = [
     nameEn: "WINE",
     glyph: "葡",
     lead: "ぶどうから造る醸造酒。色（赤・白・ロゼ）と泡の有無で分け、品種で味わいが変わります。国産ぶどうだけで造る「日本ワイン」は、和食と合わせやすい注目の分類です。",
+    guide: "subcategories",
+    look: { tint: "#3A2834", stroke: "#9A7A8C", icon: "wine-glass" },
   },
 ];
 

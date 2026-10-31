@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { ReactNode } from "react";
+import { colors } from "./tokens";
 
 // OGP 画像（next/og の ImageResponse）用の共通部品。
 // ImageResponse は woff2 を読めないので TTF を assets/fonts に置いている（OFL）。
@@ -20,16 +21,16 @@ export const ogFonts = [
   { name: "Zen Antique", data: antique, weight: 400 as const, style: "normal" as const },
 ];
 
-// globals.css のトークンと同じ値（ImageResponse では CSS 変数が使えない）
+// ImageResponse では CSS 変数が使えないので、globals.css と同じ値を lib/tokens.ts から
 export const og = {
-  bg: "#13202c",
-  surface: "#172735",
-  line: "#253747",
-  lineStrong: "#3a5163",
-  fg: "#edeff1",
-  muted: "#afbac5",
-  subtle: "#8e9ca9",
-  accent: "#f2876c",
+  bg: colors.bg,
+  surface: colors.surface,
+  line: colors.line,
+  lineStrong: colors["line-strong"],
+  fg: colors.fg,
+  muted: colors.muted,
+  subtle: colors.subtle,
+  accent: colors.accent,
 };
 
 export function OgGlyph({ char, size, color }: { char: "阿" | "吽"; size: number; color: string }) {

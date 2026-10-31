@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import type { PairingLevel } from "@/lib/types";
-import { Glyph, PairingBadge } from "./ui";
+import { Glyph, PairingBadge, TagList } from "./ui";
 
 export type FinderBrand = {
   slug: string;
@@ -124,16 +124,7 @@ export function PairFinder({ categories }: { categories: FinderCategory[] }) {
             {cur.sub} ・ {cur.maker}（{cur.region}）
           </p>
           <p className="text-[15px] leading-[1.8] md:text-base">{cur.taste}</p>
-          <ul className="flex flex-wrap gap-1.5">
-            {cur.tags.map((t) => (
-              <li
-                key={t}
-                className="rounded-full border border-line-strong px-2.5 py-1 text-xs text-fg-2 md:text-[13px]"
-              >
-                {t}
-              </li>
-            ))}
-          </ul>
+          <TagList tags={cur.tags} />
           <p className="mt-1 text-[13px] text-muted md:mt-auto md:text-sm">
             おすすめの飲み方 ・ <span className="text-fg">{cur.serve}</span>
           </p>

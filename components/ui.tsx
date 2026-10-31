@@ -54,3 +54,33 @@ export function PhotoPlaceholder({ label, className = "" }: { label: string; cla
     </div>
   );
 }
+
+/**
+ * 選択できるピル（種類・味わい・小分類タブなど）の class。
+ * md：ページ内の主な切り替え、sm：絞り込みパネルのような密な並び
+ */
+export function chipClass(on: boolean, size: "sm" | "md" = "md"): string {
+  const base =
+    "inline-flex flex-none cursor-pointer items-center justify-center whitespace-nowrap rounded-full border-2";
+  const sizes = {
+    md: "min-h-11 px-5 text-[15px] md:text-base",
+    sm: "min-h-11 px-4 text-sm md:min-h-10 md:px-3.5",
+  };
+  const state = on
+    ? "border-accent bg-accent font-bold text-bg"
+    : "border-line-strong font-medium text-fg hover:border-subtle";
+  return `${base} ${sizes[size]} ${state}`;
+}
+
+/** 銘柄のタグ（芋の甘み・黒麹…）。選べない、表示だけのもの */
+export function TagList({ tags }: { tags: readonly string[] }) {
+  return (
+    <ul className="flex flex-wrap gap-1.5">
+      {tags.map((t) => (
+        <li key={t} className="rounded-full border border-line-strong px-2.5 py-1 text-xs text-fg-2 md:text-[13px]">
+          {t}
+        </li>
+      ))}
+    </ul>
+  );
+}
