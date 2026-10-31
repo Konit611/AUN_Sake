@@ -4,6 +4,8 @@ import {
   type Category,
   type Food,
   type PairingNote,
+  type Maker,
+  type Region,
   type ServeStyle,
   type SubCategory,
   type TasteChart,
@@ -13,6 +15,8 @@ type Content = {
   categories: Category[];
   subCategories: SubCategory[];
   serveStyles: ServeStyle[];
+  regions: Region[];
+  makers: Maker[];
   foods: Food[];
   brands: BrandInput[];
   notes: PairingNote[];
@@ -46,6 +50,8 @@ export function validateContent(c: Content): string[] {
     [...c.categories.map((x) => x.id), ...c.subCategories.map((x) => x.id)],
   );
   checkDup("serveStyle id", c.serveStyles.map((x) => x.id));
+  checkDup("region id", c.regions.map((x) => x.id));
+  checkDup("maker id", c.makers.map((x) => x.id));
   checkDup("food slug", c.foods.map((x) => x.slug));
   checkDup("brand slug", c.brands.map((x) => x.slug));
   checkDup("note slug", c.notes.map((x) => x.slug));
@@ -55,6 +61,20 @@ export function validateContent(c: Content): string[] {
   const serveIds = new Set(c.serveStyles.map((x) => x.id));
   const foodSlugs = new Set(c.foods.map((x) => x.slug));
   const brandSlugs = new Set(c.brands.map((x) => x.slug));
+
+  const regionById = new Map(c.regions.map((r) => [r.id, r]));
+  for (const r of c.regions) {
+    if (r.kind === "prefecture") {
+      const country = r.countryId ? regionById.get(r.countryId) : undefined;
+      if (country?.kind !== "country") errors.push(`region ${r.id}: countryId "${r.countryId}" が国ではありません`);
+    } else if (r.countryId) {
+      errors.push(`region ${r.id}: 国に countryId は書きません`);
+    }
+  }
+  const makerIds = new Set(c.makers.map((m) => m.id));
+  for (const m of c.makers) {
+    if (!regionById.has(m.regionId)) errors.push(`maker ${m.id}: regionId "${m.regionId}" がありません`);
+  }
 
   const brandNames = new Set(c.brands.map((b) => b.name));
   for (const s of c.subCategories) {
@@ -74,6 +94,8 @@ export function validateContent(c: Content): string[] {
     if (!subCategoryIds.has(b.subCategoryId)) {
       errors.push(`${at}: subCategoryId "${b.subCategoryId}" がありません`);
     }
+    if (!makerIds.has(b.makerId)) errors.push(`${at}: makerId "${b.makerId}" がありません`);
+    if (b.regionId && !regionById.has(b.regionId)) errors.push(`${at}: regionId "${b.regionId}" がありません`);
     for (const id of b.alsoIn ?? []) {
       const s = c.subCategories.find((x) => x.id === id);
       if (!s) errors.push(`${at}: alsoIn "${id}" がありません`);

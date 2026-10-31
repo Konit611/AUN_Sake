@@ -5,7 +5,10 @@ import { describe, expect, it } from "vitest";
 import {
   getBrand,
   getBrands,
+  getBrandsByMaker,
   getBrandsBySubCategory,
+  getMaker,
+  getRegion,
   getCategoriesWithBrands,
   getFoodsWithPairings,
   getNotes,
@@ -33,6 +36,16 @@ describe("content/", () => {
   it("どの銘柄にもペアリングが 1 つ以上ある（ページと「吽」カードが空にならない）", () => {
     for (const b of getBrands()) {
       expect(getPairings(b.slug).length, b.slug).toBeGreaterThan(0);
+    }
+  });
+
+  it("銘柄の蔵元・産地がつながっている（産地を書かなければ蔵元の所在地）", () => {
+    for (const b of getBrands()) {
+      const maker = getMaker(b.makerId);
+      expect(maker, b.slug).toBeDefined();
+      expect(getBrandsByMaker(b.makerId).map((x) => x.slug)).toContain(b.slug);
+      expect(b.maker).toBe(maker!.name);
+      expect(b.region).toBe(getRegion(b.regionId)!.name);
     }
   });
 

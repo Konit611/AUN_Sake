@@ -18,8 +18,10 @@
 | `categories` | `id` | name, name_en, kana, glyph, lead, guide, look(jsonb), sort | `content/categories.ts` |
 | `sub_categories` | `id` | category_id → categories, name, kana, meta, taste, pair, examples(text[]), sort | 〃 |
 | `serve_styles` | `id` | name | `content/serve-styles.ts` |
+| `regions` | `id` | name, kana, kind(prefecture/country), country_id → regions | `content/regions.ts` |
+| `makers` | `id` | name, kana, region_id → regions | `content/makers.ts` |
 | `foods` | `slug` | name, kana, genres(text[]), image | `content/foods.ts` |
-| `brands` | `slug` | name, kana, sub_category_id → sub_categories, maker, region, abv, taste, tags(text[]), tastes(text[]), taste_chart(jsonb), recommended_serve, avoid, image, sort | `content/brands/*.ts` |
+| `brands` | `slug` | name, kana, sub_category_id → sub_categories, maker_id → makers, region_id → regions(null이면 maker의 소재지), abv, taste, tags(text[]), tastes(text[]), taste_chart(jsonb), recommended_serve, avoid, image, sort | `content/brands/*.ts` |
 | `brand_also_in` | (brand_slug, sub_category_id) | | `alsoIn` |
 | `brand_serves` | (brand_slug, serve_id) | how, note, sort | `serves` |
 | `pairings` | `id` (`銘柄/肴@飲み方`) | brand_slug, food_slug, serve_id(null 가능), level, why, sort | `pairings` |

@@ -24,7 +24,9 @@ export type ExplorerBrand = {
   sub: string;
   subKana?: string;
   maker: string;
+  makerKana?: string;
   region: string;
+  regionKana?: string;
   tastes: TasteKeyword[];
   genres: FoodGenre[];
   /** いちばん息が合う肴 */
@@ -107,7 +109,7 @@ export function BrandExplorer({
       new Map(
         brands.map((b) => {
           const kind = kindById.get(b.kind);
-          const parts = [b.name, b.kana, b.maker, b.region, b.sub, b.subKana, kind?.name, kind?.kana];
+          const parts = [b.name, b.kana, b.maker, b.makerKana, b.region, b.regionKana, b.sub, b.subKana, kind?.name, kind?.kana];
           return [b.slug, normalize(parts.filter(Boolean).join(" "))];
         }),
       ),
