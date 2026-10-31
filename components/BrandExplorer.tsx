@@ -1,27 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useSyncExternalStore } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import { normalize } from "@/lib/search";
 import type { CategoryId, FoodGenre, TasteKeyword } from "@/lib/types";
 import { FOOD_GENRES, TASTE_KEYWORDS } from "@/lib/types";
 import { Glyph } from "./ui";
 
+/** 全銘柄ぶんクライアントに渡るので、表示と絞り込みに要るものだけにする */
 export type ExplorerBrand = {
   slug: string;
   name: string;
+  kana?: string;
   kind: CategoryId;
-  kindName: string;
   sub: string;
+  subKana?: string;
   maker: string;
   region: string;
   tastes: TasteKeyword[];
   genres: FoodGenre[];
   /** いちばん息が合う肴 */
   pair?: string;
-  /** normalize 済み：名前・よみ・蔵元・産地・分類 */
-  haystack: string;
 };
+
+export type ExplorerKind = { id: CategoryId; name: string; kana?: string };
+
+// 一度に描画するカードの数。「もっと見る」でこの数ずつ足す
+const PAGE_SIZE = 24;
 
 type Filters = { q: string; kind: string; taste: string; food: string };
 
@@ -132,19 +137,30 @@ function ChipGroup({
   );
 }
 
-export function BrandExplorer({
-  brands,
-  kinds,
-}: {
-  brands: ExplorerBrand[];
-  kinds: { id: string; name: string }[];
-}) {
+export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kinds: ExplorerKind[] }) {
   const search = useSyncExternalStore(
     subscribe,
     () => window.location.search,
     () => "",
   );
   const f = parse(search);
+
+  const kindById = useMemo(() => new Map(kinds.map((k) => [k.id, k])), [kinds]);
+  // 検索対象：名前・よみ・蔵元・産地・分類（サーバーから送らずにここで一度だけ作る）
+  const haystacks = useMemo(
+    () =>
+      new Map(
+        brands.map((b) => {
+          const kind = kindById.get(b.kind);
+          const parts = [b.name, b.kana, b.maker, b.region, b.sub, b.subKana, kind?.name, kind?.kana];
+          return [b.slug, normalize(parts.filter(Boolean).join(" "))];
+        }),
+      ),
+    [brands, kindById],
+  );
+  // 条件が変わったら先頭から
+  const [page, setPage] = useState({ search, shown: PAGE_SIZE });
+  const shown = page.search === search ? page.shown : PAGE_SIZE;
   const [filterOpen, setFilterOpen] = useState(false);
 
   const update = (patch: Partial<Filters>) => {
@@ -167,7 +183,7 @@ export function BrandExplorer({
       (f.kind === "all" || b.kind === f.kind) &&
       (!f.taste || b.tastes.includes(f.taste as TasteKeyword)) &&
       (!f.food || b.genres.includes(f.food as FoodGenre)) &&
-      terms.every((t) => b.haystack.includes(t)),
+      terms.every((t) => haystacks.get(b.slug)!.includes(t)),
   );
 
   const kindItems = [{ id: "all", name: "すべて" }, ...kinds];
@@ -292,12 +308,21 @@ export function BrandExplorer({
             </div>
           ) : (
             <ul className="flex flex-col gap-3 px-5 md:grid md:grid-cols-[repeat(auto-fill,minmax(280px,1fr))] md:gap-4 md:px-0">
-              {results.map((b) => (
+              {results.slice(0, shown).map((b) => (
                 <li key={b.slug}>
-                  <BrandCard b={b} />
+                  <BrandCard b={b} kindName={kindById.get(b.kind)?.name ?? ""} />
                 </li>
               ))}
             </ul>
+          )}
+          {results.length > shown && (
+            <button
+              type="button"
+              onClick={() => setPage({ search, shown: shown + PAGE_SIZE })}
+              className="mx-auto flex min-h-11 cursor-pointer items-center rounded-full border-2 border-line-strong px-6 text-[15px] font-bold text-fg hover:border-subtle"
+            >
+              もっと見る（残り{results.length - shown}）
+            </button>
           )}
         </div>
       </div>
@@ -305,7 +330,7 @@ export function BrandExplorer({
   );
 }
 
-function BrandCard({ b }: { b: ExplorerBrand }) {
+function BrandCard({ b, kindName }: { b: ExplorerBrand; kindName: string }) {
   const look = KIND_LOOK[b.kind];
   return (
     <Link
@@ -336,11 +361,11 @@ function BrandCard({ b }: { b: ExplorerBrand }) {
       </div>
       <div className="flex min-w-0 flex-1 flex-col gap-1 px-3.5 py-3 md:gap-3 md:px-5 md:pb-5 md:pt-[18px]">
         <p className="text-[11px] text-muted md:hidden">
-          {b.kindName} ・ {b.sub} ・ {b.region}
+          {kindName} ・ {b.sub} ・ {b.region}
         </p>
         <div className="hidden items-center justify-between gap-2 md:flex">
           <span className="rounded-full border border-line-strong px-2.5 py-[3px] text-xs text-fg-2">
-            {b.kindName} ・ {b.sub}
+            {kindName} ・ {b.sub}
           </span>
           <span className="text-xs text-subtle">{b.region}</span>
         </div>

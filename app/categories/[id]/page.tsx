@@ -1,26 +1,27 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ShowMore } from "@/components/ShowMore";
 import { Breadcrumbs, type Crumb } from "@/components/Breadcrumbs";
 import { PairingBadge, SectionHeading } from "@/components/ui";
 import {
   getBrandsByCategory,
   getBrandsBySubCategory,
-  getCategories,
+  getCategoriesWithBrands,
   getCategory,
   getFood,
   getPairings,
-  getSubCategories,
+  getSubCategoriesWithBrands,
   getSubCategory,
 } from "@/lib/data";
 import { pageMetadata } from "@/lib/site";
-import type { Brand, Category, CategoryId, SubCategory } from "@/lib/types";
+import type { Brand, Category, SubCategory } from "@/lib/types";
 
 // /categories/shochu（大分類）と /categories/imo-shochu（小分類）を同じルートで扱う。
 // id が重ならないことは lib/validate.ts で確認している。
 type View =
-  | { kind: "category"; category: Category; brands: Brand[] }
-  | { kind: "sub"; category: Category; sub: SubCategory; brands: Brand[] };
+  | { kind: "category"; category: Category; brands: readonly Brand[] }
+  | { kind: "sub"; category: Category; sub: SubCategory; brands: readonly Brand[] };
 
 function resolve(id: string): View | undefined {
   const category = getCategory(id);
@@ -36,15 +37,10 @@ function resolve(id: string): View | undefined {
   }
 }
 
-// 銘柄が登録されている小分類だけページを作る
-function subCategoriesWithBrands(categoryId?: CategoryId) {
-  return getSubCategories(categoryId).filter((s) => getBrandsBySubCategory(s.id).length > 0);
-}
-
 export function generateStaticParams() {
   return [
-    ...getCategories().filter((c) => getBrandsByCategory(c.id).length > 0),
-    ...subCategoriesWithBrands(),
+    ...getCategoriesWithBrands(),
+    ...getSubCategoriesWithBrands(),
   ].map((x) => ({ id: x.id }));
 }
 
@@ -68,7 +64,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
   if (!view) notFound();
 
   const { category, brands } = view;
-  const subs = subCategoriesWithBrands(category.id);
+  const subs = getSubCategoriesWithBrands(category.id);
   const crumbs: Crumb[] = [
     { label: "ホーム", href: "/" },
     { label: "お酒の分類", href: "/categories" },
@@ -118,7 +114,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
         </nav>
       )}
 
-      <ul className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] md:gap-5">
+      <ShowMore className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] md:gap-5">
         {brands.map((b) => {
           const top = getPairings(b.slug)[0];
           return (
@@ -155,7 +151,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
             </li>
           );
         })}
-      </ul>
+      </ShowMore>
     </div>
   );
 }

@@ -7,13 +7,13 @@ import {
   getBrands,
   getBrandsByCategory,
   getBrandsBySubCategory,
-  getCategories,
+  getCategoriesWithBrands,
   getCategory,
   getFood,
-  getFoods,
+  getFoodsWithPairings,
   getPairings,
   getPairingsByFood,
-  getSubCategories,
+  getSubCategoriesWithBrands,
   getSubCategory,
 } from "@/lib/data";
 import { normalize, type SearchEntry } from "@/lib/search";
@@ -56,9 +56,8 @@ function buildIndex(): SearchEntry[] {
     };
   });
 
-  const foods: SearchEntry[] = getFoods()
+  const foods: SearchEntry[] = getFoodsWithPairings()
     .map((f) => ({ f, count: getPairingsByFood(f.slug).length }))
-    .filter(({ count }) => count > 0)
     .map(({ f, count }) => ({
       kind: "food",
       title: f.name,
@@ -68,18 +67,14 @@ function buildIndex(): SearchEntry[] {
     }));
 
   const categories: SearchEntry[] = [
-    ...getCategories()
-      .filter((c) => getBrandsByCategory(c.id).length > 0)
-      .map((c) => ({
+    ...getCategoriesWithBrands().map((c) => ({
         kind: "category" as const,
         title: c.name,
         detail: `${getBrandsByCategory(c.id).length}銘柄`,
         href: `/categories/${c.id}`,
         haystack: haystack(c.name, c.nameEn, c.kana),
       })),
-    ...getSubCategories()
-      .filter((s) => getBrandsBySubCategory(s.id).length > 0)
-      .map((s) => ({
+    ...getSubCategoriesWithBrands().map((s) => ({
         kind: "category" as const,
         title: s.name,
         detail: `${getCategory(s.categoryId)!.name} ・ ${getBrandsBySubCategory(s.id).length}銘柄`,

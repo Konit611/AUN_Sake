@@ -9,6 +9,7 @@ import {
   getBrandsBySubCategory,
   formatServe,
   getCategories,
+  getCategoriesWithBrands,
   getFood,
   getNotes,
   getPairings,
@@ -20,12 +21,20 @@ import { pageMetadata } from "@/lib/site";
 
 export const metadata: Metadata = pageMetadata({ path: "/" });
 
+// ホームで選べる銘柄は大分類ごとにこの数まで（content/brands/*.ts の並び順）。残りは /brands へ。
+// 全銘柄をクライアントに渡すと、銘柄数に比例してホームが重くなるため
+const FINDER_BRANDS_PER_CATEGORY = 8;
+// 「お酒の分類から探す」の各行に並べる銘柄名の数
+const TREE_NAMES = 3;
+
 export default function Home() {
-  const finder: FinderCategory[] = getCategories()
-    .map((c) => ({
+  const finder: FinderCategory[] = getCategoriesWithBrands().map((c) => {
+    const all = getBrandsByCategory(c.id);
+    return {
       id: c.id,
       name: c.name,
-      brands: getBrandsByCategory(c.id).map((b) => ({
+      total: all.length,
+      brands: all.slice(0, FINDER_BRANDS_PER_CATEGORY).map((b) => ({
         slug: b.slug,
         name: b.name,
         sub: getSubCategory(b.subCategoryId)!.name,
@@ -42,8 +51,8 @@ export default function Home() {
           why: p.why,
         })),
       })),
-    }))
-    .filter((c) => c.brands.length > 0);
+    };
+  });
 
   // 銘柄か代表銘柄の例がある小分類だけ出す
   const tree = getCategories()
@@ -154,7 +163,10 @@ export default function Home() {
                     >
                       <span className="flex min-w-0 flex-col gap-0.5">
                         <span className="text-[15px] font-bold md:text-base">{s.name}</span>
-                        <span className="text-[13px] text-muted">{s.names.join(" ・ ")}</span>
+                        <span className="text-[13px] text-muted">
+                          {s.names.slice(0, TREE_NAMES).join(" ・ ")}
+                          {s.names.length > TREE_NAMES && ` ほか${s.names.length - TREE_NAMES}`}
+                        </span>
                       </span>
                       <svg
                         width="16"

@@ -12,6 +12,9 @@ export const metadata: Metadata = pageMetadata({
   path: "/categories",
 });
 
+// 小分類カードに並べる銘柄の数。残りは小分類ページへ
+const CHIP_LIMIT = 8;
+
 // モバイルはヘッダー（61px）の下に分類タブ（49px）が固定されるので、その分ずらして止める
 const anchorOffset = "scroll-mt-[118px] md:scroll-mt-6";
 
@@ -94,8 +97,10 @@ export default function CategoriesPage() {
             <GroupHeading category={c} />
             <div className="grid grid-cols-1 gap-3 md:grid-cols-[repeat(auto-fill,minmax(330px,1fr))] md:gap-4">
               {getSubCategories(c.id).map((s) => {
-                const brands = getBrandsBySubCategory(s.id);
-                const examples = s.examples ?? [];
+                const all = getBrandsBySubCategory(s.id);
+                const brands = all.slice(0, CHIP_LIMIT);
+                // 代表銘柄の例は、空いている枠にだけ出す
+                const examples = (s.examples ?? []).slice(0, Math.max(0, CHIP_LIMIT - brands.length));
                 return (
                   <div
                     key={s.id}
@@ -130,6 +135,16 @@ export default function CategoriesPage() {
                             </Link>
                           </li>
                         ))}
+                        {all.length > brands.length && (
+                          <li className="flex-none">
+                            <Link
+                              href={`/categories/${s.id}`}
+                              className="flex min-h-9 items-center whitespace-nowrap rounded-full border border-dashed border-line-strong px-3 text-[13px] font-bold text-accent hover:border-accent"
+                            >
+                              すべて（{all.length}）→
+                            </Link>
+                          </li>
+                        )}
                         {/* 銘柄ページがまだない代表銘柄はリンクなし */}
                         {examples.map((name) => (
                           <li
