@@ -13,7 +13,12 @@ npm install
 npm run dev          # http://localhost:3000
 npm run build
 npm start            # standalone 서버 (빌드 후)
+npm test             # lib/ 로직과 content/ 규칙 테스트 (vitest)
+npm run typecheck    # 라우트 타입 생성 후 tsc
 ```
+
+PR과 main push마다 GitHub Actions(`.github/workflows/ci.yml`)가 lint → typecheck → test → build와 Docker 이미지 빌드를 실행한다.
+콘텐츠를 고친 PR도 여기서 참조 오류가 걸러진다.
 
 CSS나 콘텐츠를 바꿨는데 화면에 반영되지 않으면 `rm -rf .next` 후 다시 빌드한다 (Turbopack 캐시).
 
