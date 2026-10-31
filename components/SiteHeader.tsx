@@ -42,27 +42,25 @@ export function SiteHeader() {
   return <HeaderView pathname={pathname} />;
 }
 
-/** pathname が null（Suspense の fallback）なら現在地の強調なし・ホーム用のモバイルバー */
+/**
+ * pathname は現在地の強調にだけ使う（null＝Suspense の fallback では強調なし）。
+ * モバイルの形（ホーム：ロゴ左＋検索／それ以外：戻る＋中央ロゴ）は、ホームに置いた
+ * data-page="home" を body の :has() で見て CSS で切り替える。fallback と本描画で形がずれないように。
+ */
 export function HeaderView({ pathname }: { pathname: string | null }) {
-  const isHome = pathname === null || pathname === "/";
-
   return (
     <header className="sticky top-0 z-20 border-b border-line bg-bg md:static">
       <div className="mx-auto flex max-w-[1200px] items-center justify-between gap-4 py-2 pl-1 pr-2 md:px-6 md:py-[18px]">
         {/* モバイル：ホーム以外は「戻る」＋中央のロゴ */}
-        {!isHome && <BackButton />}
+        <BackButton />
 
         <Link
           href="/"
           aria-label="AUN ホーム"
-          className={`flex min-h-11 items-center gap-2 text-fg md:gap-3 ${isHome ? "pl-3 md:pl-0" : ""}`}
+          className="flex min-h-11 items-center gap-2 text-fg max-md:group-has-[[data-page=home]]/page:pl-3 md:gap-3"
         >
-          <LogoMark
-            className={`text-accent md:h-6 md:w-11 ${isHome ? "h-5 w-9" : "h-[18px] w-8"}`}
-          />
-          <span
-            className={`font-black tracking-[0.18em] md:text-[26px] ${isHome ? "text-[22px]" : "text-lg"}`}
-          >
+          <LogoMark className="h-[18px] w-8 text-accent max-md:group-has-[[data-page=home]]/page:h-5 max-md:group-has-[[data-page=home]]/page:w-9 md:h-6 md:w-11" />
+          <span className="text-lg font-black tracking-[0.18em] max-md:group-has-[[data-page=home]]/page:text-[22px] md:text-[26px]">
             AUN
           </span>
         </Link>
@@ -86,18 +84,16 @@ export function HeaderView({ pathname }: { pathname: string | null }) {
         </nav>
 
         <div className="flex items-center md:hidden">
-          {isHome && (
-            <Link
-              href="/search"
-              aria-label="検索"
-              className="flex size-11 items-center justify-center text-fg"
-            >
-              <svg {...icon}>
-                <circle cx="11" cy="11" r="7" />
-                <path d="M20 20l-4-4" />
-              </svg>
-            </Link>
-          )}
+          <Link
+            href="/search"
+            aria-label="検索"
+            className="hidden size-11 items-center justify-center text-fg group-has-[[data-page=home]]/page:flex"
+          >
+            <svg {...icon}>
+              <circle cx="11" cy="11" r="7" />
+              <path d="M20 20l-4-4" />
+            </svg>
+          </Link>
 
           {/* JS なしで開閉できる details。ページが変わったら key で閉じる */}
           <details key={pathname} className="group relative">
@@ -144,7 +140,7 @@ function BackButton() {
         if (fromSite) router.back();
         else router.push("/");
       }}
-      className="flex size-11 cursor-pointer items-center justify-center text-fg md:hidden"
+      className="flex size-11 cursor-pointer items-center justify-center text-fg group-has-[[data-page=home]]/page:hidden md:hidden"
     >
       <svg {...icon}>
         <path d="M15 5l-7 7 7 7" />

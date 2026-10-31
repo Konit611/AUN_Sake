@@ -43,7 +43,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="ja"
       className={`${zenKaku.variable} ${zenAntique.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col font-sans">
+      <body className="group/page min-h-full flex flex-col font-sans">
         <Suspense fallback={<HeaderView pathname={null} />}>
           <SiteHeader />
         </Suspense>
