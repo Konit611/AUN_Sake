@@ -8,7 +8,6 @@ import {
   type Region,
   type ServeStyle,
   type SubCategory,
-  type TasteChart,
 } from "./types";
 
 type Content = {
@@ -61,6 +60,12 @@ export function validateContent(c: Content): string[] {
   const serveIds = new Set(c.serveStyles.map((x) => x.id));
   const foodSlugs = new Set(c.foods.map((x) => x.slug));
   const brandSlugs = new Set(c.brands.map((x) => x.slug));
+
+  const categoryById = new Map<string, Category>(c.categories.map((x) => [x.id, x]));
+  const subCategoryById = new Map(c.subCategories.map((x) => [x.id, x]));
+  for (const cat of c.categories) {
+    checkDup(`category ${cat.id}: chart の軸`, cat.chart?.axes.map((a) => a.id) ?? []);
+  }
 
   const regionById = new Map(c.regions.map((r) => [r.id, r]));
   for (const r of c.regions) {
@@ -123,8 +128,22 @@ export function validateContent(c: Content): string[] {
       }
     }
 
-    if (b.tasteChart) {
-      for (const [key, v] of Object.entries(b.tasteChart) as [keyof TasteChart, number][]) {
+    // 味わいチャートは、大分類の chart.axes とちょうど同じ軸で、1–5 の整数
+    const category = categoryById.get(subCategoryById.get(b.subCategoryId)?.categoryId ?? "");
+    if (b.tasteChart && category) {
+      const axes = category.chart?.axes.map((a) => a.id) ?? [];
+      if (axes.length === 0) {
+        errors.push(`${at}: 大分類 ${category.id} に chart.axes がないので tasteChart は書けません`);
+      } else {
+        const keys = Object.keys(b.tasteChart);
+        for (const k of axes.filter((a) => !keys.includes(a))) {
+          errors.push(`${at}: tasteChart に軸 ${k} がありません`);
+        }
+        for (const k of keys.filter((k) => !axes.includes(k))) {
+          errors.push(`${at}: tasteChart の ${k} は大分類 ${category.id} の軸ではありません`);
+        }
+      }
+      for (const [key, v] of Object.entries(b.tasteChart)) {
         if (!Number.isInteger(v) || v < 1 || v > 5) {
           errors.push(`${at}: tasteChart.${key} は 1–5 の整数にしてください (${v})`);
         }

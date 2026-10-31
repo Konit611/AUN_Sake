@@ -6,7 +6,23 @@ import { validateContent } from "./validate";
 function fixture() {
   const look = { tint: "#000", stroke: "#fff", icon: "bottle" } as const;
   const categories: Category[] = [
-    { id: "shochu", name: "焼酎", nameEn: "SHOCHU", glyph: "焼", lead: "", guide: "subcategories", look },
+    {
+      id: "shochu",
+      name: "焼酎",
+      nameEn: "SHOCHU",
+      glyph: "焼",
+      lead: "",
+      guide: "subcategories",
+      look,
+      chart: {
+        axes: [
+          { id: "sweetness", label: "甘み" },
+          { id: "aroma", label: "香り" },
+          { id: "kire", label: "キレ" },
+          { id: "koku", label: "コク" },
+        ],
+      },
+    },
     { id: "wine", name: "ワイン", nameEn: "WINE", glyph: "葡", lead: "", guide: "subcategories", look },
   ];
   const subCategories: SubCategory[] = [
@@ -177,6 +193,28 @@ describe("validateContent", () => {
     c.brands[0].tasteChart = { sweetness: 0, aroma: 3.5, kire: 4, koku: 6 };
     const errors = validateContent(c);
     expect(errors.filter((e) => e.includes("tasteChart"))).toHaveLength(3);
+  });
+
+  it("味わいチャートの軸は大分類の chart.axes とちょうど同じ", () => {
+    const c = fixture();
+    c.brands[0].tasteChart = { sweetness: 4, aroma: 3, kire: 4, acidity: 2 };
+    const errors = validateContent(c);
+    expect(errors).toContain("brand kuro: tasteChart に軸 koku がありません");
+    expect(errors).toContain("brand kuro: tasteChart の acidity は大分類 shochu の軸ではありません");
+  });
+
+  it("軸のない大分類の銘柄は味わいチャートを持てない", () => {
+    const c = fixture();
+    c.brands[1].tasteChart = { sweetness: 3 };
+    expect(validateContent(c)).toContain(
+      "brand grace: 大分類 wine に chart.axes がないので tasteChart は書けません",
+    );
+  });
+
+  it("大分類の中で軸の id は重ならない", () => {
+    const c = fixture();
+    c.categories[1].chart = { axes: [{ id: "acidity", label: "酸味" }, { id: "acidity", label: "酸" }] };
+    expect(validateContent(c)).toContain("category wine: chart の軸 が重複しています: acidity");
   });
 
   it("examples に登録済みの銘柄名が残っている", () => {

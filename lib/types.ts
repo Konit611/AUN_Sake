@@ -19,7 +19,15 @@ export type Category = {
   guide: "subcategories" | "custom";
   /** 写真が入るまでのカードの色とシルエット */
   look: { tint: string; stroke: string; icon: KindIcon };
+  /**
+   * 銘柄ページの「味わいチャート」の軸（並び順どおりに出す）。
+   * 大分類ごとに違う軸を使える（焼酎：甘み・香り…、ワインなら酸味・渋み…）。
+   * ないと、その大分類の銘柄は tasteChart を持てない
+   */
+  chart?: { axes: ChartAxis[] };
 };
+
+export type ChartAxis = { id: string; label: string };
 
 /** components/KindIcon.tsx のシルエット */
 export type KindIcon = "bottle" | "mug" | "tokkuri" | "wine-glass";
@@ -91,13 +99,8 @@ export const PAIRING_LEVELS: Record<PairingLevel, { order: number }> = {
   surprise: { order: 2 },
 };
 
-/** 1–5 */
-export type TasteChart = {
-  sweetness: number;
-  aroma: number;
-  kire: number;
-  koku: number;
-};
+/** 軸の id（大分類の chart.axes）→ 1–5 */
+export type TasteChart = Record<string, number>;
 
 export type BrandServe = {
   serveId: string;
@@ -191,7 +194,9 @@ export function pairingId(brandSlug: string, foodSlug: string, serveId?: string)
 
 type Translatable<T, K extends keyof T> = Omit<T, K> & { [P in K]: T[P] extends string ? Localized : T[P] extends string | undefined ? Localized | undefined : T[P] extends string[] ? Localized<string[]> : never };
 
-export type CategorySource = Translatable<Category, "name" | "lead">;
+export type CategorySource = Omit<Translatable<Category, "name" | "lead">, "chart"> & {
+  chart?: { axes: { id: string; label: Localized }[] };
+};
 export type SubCategorySource = Translatable<SubCategory, "name" | "meta" | "taste" | "pair">;
 export type ServeStyleSource = Translatable<ServeStyle, "name">;
 export type RegionSource = Translatable<Region, "name">;

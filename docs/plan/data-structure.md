@@ -25,13 +25,13 @@ lib/
 
 | 엔티티 | 키 | 비고 |
 |---|---|---|
-| Category | `id` | 배열 순서 = 표시 순서, 검색용 `kana`, `glyph`(焼・麦・米・葡), `lead`(분류 해설) |
+| Category | `id` | 배열 순서 = 표시 순서, 검색용 `kana`, `glyph`(焼・麦・米・葡), `lead`(분류 해설), `chart.axes`(맛 차트 축, 대분류마다. 지금은 焼酎만) |
 | SubCategory | `id` | `categoryId`, `kana`, 해설 `meta`/`taste`/`pair`, 아직 페이지 없는 대표 브랜드 `examples`. Category와 같은 `/categories/[id]`를 쓰므로 id가 겹치면 안 됨 |
 | ServeStyle | `id` | お湯割り, ロック, 冷酒, 燗 … |
 | Region | `id` | 산지. `kind`: `prefecture`(현, `countryId`로 나라에 연결) / `country`, `kana` |
 | Maker | `id` | 양조장·메이커. `name`, `kana`, `regionId`(소재지). 읽기가 같은 다른 양조장이 있으므로 id로 구분 |
 | Food | `slug` | 안주 → 술 역방향 조회 (`/foods/[slug]`), `kana`, `genres`(id: seafood・meat・fried・simmered・spicy, 라벨은 사전) |
-| Brand | `slug` | `kana`, `subCategoryId`, `makerId`, `regionId`(소재지와 다를 때만, 없으면 양조장 소재지), `alsoIn`(추가 소분류), `tastes`(id: clean・crisp・rich・sweet・floral・light, 라벨은 사전), `serves`(음용법별 비율/메모), `recommendedServe`, `tasteChart`(1–5), `avoid` |
+| Brand | `slug` | `kana`, `subCategoryId`, `makerId`, `regionId`(소재지와 다를 때만, 없으면 양조장 소재지), `alsoIn`(추가 소분류), `tastes`(id: clean・crisp・rich・sweet・floral・light, 라벨은 사전), `serves`(음용법별 비율/메모), `recommendedServe`, `tasteChart`(대분류의 `chart.axes`와 같은 축, 1–5), `avoid` |
 | Pairing | brand × food × serve (`pairingId()`) | `level`: `aun`(阿吽) / `good`(好相性) / `surprise`(意外), `serve`가 있으면 브랜드 페이지 「飲み方別」에 표시 |
 | PairingNote | `slug` | `brandSlug`, `foodSlug`, `serveId`(등록된 궁합이어야 함), `publishedAt`, `author`, `lead`(요약), `quote`(阿吽のひとこと), `draft` |
 
