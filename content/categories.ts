@@ -44,7 +44,7 @@ export const subCategories: SubCategory[] = [
     meta: "主な産地：鹿児島・宮崎",
     taste: "さつまいも由来の甘く豊かな香り。黒麹仕込みはキレが増す。",
     pair: "豚の角煮、さつま揚げ、地鶏など、甘辛い味や脂のある料理",
-    examples: ["赤霧島", "魔王", "森伊蔵"],
+    examples: ["森伊蔵"],
   },
   {
     id: "mugi-shochu",
@@ -94,7 +94,6 @@ export const subCategories: SubCategory[] = [
     meta: "下面発酵",
     taste: "爽快なキレと炭酸。冷やしてごくごく飲める。",
     pair: "餃子、唐揚げ、枝豆など、油や塩気のある料理",
-    examples: ["一番搾り"],
   },
   {
     id: "all-malt",
@@ -112,7 +111,7 @@ export const subCategories: SubCategory[] = [
     meta: "上面発酵",
     taste: "フルーティな香りとホップの個性。スタイルが多彩。",
     pair: "スパイスを使った料理、フィッシュ&チップス、チーズ",
-    examples: ["よなよなエール", "水曜日のネコ"],
+    examples: ["水曜日のネコ"],
   },
   {
     id: "dark-beer",

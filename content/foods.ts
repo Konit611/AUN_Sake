@@ -11,8 +11,12 @@ export const foods: Food[] = [
   { slug: "hiyayakko", name: "冷奴（薬味たっぷり）", kana: "ひややっこ", genres: [] },
   { slug: "samgyeopsal", name: "サムギョプサル", genres: ["肉料理"] },
   { slug: "kimchi-jjigae", name: "キムチチゲ", genres: ["辛い料理"] },
+  { slug: "buta-shogayaki", name: "豚の生姜焼き", kana: "ぶたのしょうがやき", genres: ["肉料理"] },
+  { slug: "kibinago-tempura", name: "きびなごの天ぷら", kana: "きびなごのてんぷら", genres: ["揚げ物", "魚介"] },
   { slug: "haemul-pajeon", name: "海鮮チヂミ", kana: "かいせんちぢみ", genres: ["魚介"] },
   // ビール
+  { slug: "tempura-moriawase", name: "天ぷら盛り合わせ", kana: "てんぷらもりあわせ", genres: ["揚げ物", "魚介"] },
+  { slug: "spice-chicken", name: "スパイスチキン", genres: ["肉料理", "辛い料理"] },
   { slug: "yaki-gyoza", name: "焼き餃子", kana: "やきぎょうざ", genres: ["肉料理"] },
   { slug: "edamame", name: "枝豆", kana: "えだまめ", genres: [] },
   { slug: "yakitori-tare", name: "焼き鳥（タレ）", kana: "やきとり たれ", genres: ["肉料理"] },
