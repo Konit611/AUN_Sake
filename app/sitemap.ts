@@ -18,6 +18,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: url("/"), lastModified: notes[0]?.publishedAt },
     { url: url("/notes"), lastModified: notes[0]?.publishedAt },
+    { url: url("/brands") },
+    { url: url("/categories") },
     { url: url("/foods") },
     ...getCategories()
       .filter((c) => getBrandsByCategory(c.id).length > 0)

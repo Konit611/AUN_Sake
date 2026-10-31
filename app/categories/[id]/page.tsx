@@ -71,6 +71,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
   const subs = subCategoriesWithBrands(category.id);
   const crumbs: Crumb[] = [
     { label: "ホーム", href: "/" },
+    { label: "お酒の分類", href: "/categories" },
     { label: category.name, href: `/categories/${category.id}` },
     ...(view.kind === "sub" ? [{ label: view.sub.name }] : []),
   ];

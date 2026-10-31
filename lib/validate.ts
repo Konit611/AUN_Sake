@@ -55,9 +55,16 @@ export function validateContent(c: Content): string[] {
   const foodSlugs = new Set(c.foods.map((x) => x.slug));
   const brandSlugs = new Set(c.brands.map((x) => x.slug));
 
+  const brandNames = new Set(c.brands.map((b) => b.name));
   for (const s of c.subCategories) {
     if (!categoryIds.has(s.categoryId)) {
       errors.push(`subCategory ${s.id}: categoryId "${s.categoryId}" がありません`);
+    }
+    // 銘柄を登録したら examples から消す（二重に表示されるため）
+    for (const name of s.examples ?? []) {
+      if (brandNames.has(name)) {
+        errors.push(`subCategory ${s.id}: examples の「${name}」は登録済みの銘柄です`);
+      }
     }
   }
 
@@ -66,6 +73,15 @@ export function validateContent(c: Content): string[] {
     if (!subCategoryIds.has(b.subCategoryId)) {
       errors.push(`${at}: subCategoryId "${b.subCategoryId}" がありません`);
     }
+    for (const id of b.alsoIn ?? []) {
+      const s = c.subCategories.find((x) => x.id === id);
+      if (!s) errors.push(`${at}: alsoIn "${id}" がありません`);
+      else if (id === b.subCategoryId) errors.push(`${at}: alsoIn に subCategoryId と同じ "${id}" があります`);
+      else if (s.categoryId !== c.subCategories.find((x) => x.id === b.subCategoryId)?.categoryId) {
+        errors.push(`${at}: alsoIn "${id}" は別の大分類です`);
+      }
+    }
+    if (b.tastes.length === 0) errors.push(`${at}: tastes が空です`);
 
     const brandServes = new Set(b.serves.map((s) => s.serveId));
     for (const s of b.serves) {

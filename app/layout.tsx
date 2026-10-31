@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Zen_Antique, Zen_Kaku_Gothic_New } from "next/font/google";
-import { SiteHeader } from "@/components/SiteHeader";
+import { Suspense } from "react";
+import { HeaderView, SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_TITLE, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -43,7 +44,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${zenKaku.variable} ${zenAntique.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans">
-        <SiteHeader />
+        <Suspense fallback={<HeaderView pathname={null} />}>
+          <SiteHeader />
+        </Suspense>
         <main className="flex-1">{children}</main>
         <SiteFooter />
       </body>

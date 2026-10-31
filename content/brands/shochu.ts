@@ -10,6 +10,7 @@ export const shochuBrands = [
     region: "宮崎",
     taste: "黒麹仕込みの芋焼酎。トロッとした甘みと、キリッとした後口。",
     tags: ["芋の甘み", "黒麹", "キレ"],
+    tastes: ["甘み", "キレ"],
     tasteChart: { sweetness: 4, aroma: 3, kire: 4, koku: 3 },
     serves: [
       { serveId: "oyuwari", how: "焼酎6：お湯4", note: "芋の甘い香りがふわりと立つ、いちばんの飲み方。" },
@@ -32,6 +33,7 @@ export const shochuBrands = [
     region: "大分",
     taste: "軽やかで、ほのかに香ばしい麦の風味。クセが少なく食中酒向き。",
     tags: ["軽快", "麦の香ばしさ", "すっきり"],
+    tastes: ["軽快", "すっきり"],
     serves: [{ serveId: "soda" }, { serveId: "mizuwari" }],
     recommendedServe: "soda",
     pairings: [
@@ -49,6 +51,7 @@ export const shochuBrands = [
     region: "韓国",
     taste: "竹炭ろ過のすっきりした飲み口に、ほのかな甘み。冷やしてストレートで。",
     tags: ["すっきり", "ほのかな甘み", "冷やして"],
+    tastes: ["すっきり", "甘み"],
     serves: [{ serveId: "straight", how: "よく冷やして" }],
     recommendedServe: "straight",
     pairings: [

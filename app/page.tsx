@@ -45,13 +45,16 @@ export default function Home() {
     }))
     .filter((c) => c.brands.length > 0);
 
-  // 銘柄が登録されている小分類だけ出す
+  // 銘柄か代表銘柄の例がある小分類だけ出す
   const tree = getCategories()
     .map((c) => ({
       ...c,
       subs: getSubCategories(c.id)
-        .map((s) => ({ ...s, brands: getBrandsBySubCategory(s.id) }))
-        .filter((s) => s.brands.length > 0),
+        .map((s) => ({
+          ...s,
+          names: [...getBrandsBySubCategory(s.id).map((b) => b.name), ...(s.examples ?? [])],
+        }))
+        .filter((s) => s.names.length > 0),
     }))
     .filter((c) => c.subs.length > 0);
 
@@ -116,41 +119,56 @@ export default function Home() {
         className="mx-auto flex max-w-[1200px] scroll-mt-16 flex-col gap-4 px-5 py-10 md:gap-7 md:px-6 md:py-[72px]"
       >
         <SectionHeading eyebrow="CATEGORIES" title="お酒の分類から探す" />
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(auto-fill,minmax(320px,1fr))] md:gap-5">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(auto-fit,minmax(min(100%,500px),1fr))] md:gap-5">
           {tree.map((k) => (
             <div
               key={k.id}
-              className="flex flex-col gap-2 rounded-2xl border border-line bg-surface px-[18px] pb-1.5 pt-[18px] md:gap-4 md:rounded-[20px] md:p-[26px]"
+              className="flex flex-col overflow-hidden rounded-2xl border border-line bg-surface md:flex-row md:rounded-3xl"
             >
-              <div className="flex items-baseline justify-between gap-3">
-                <h3 className="text-xl font-black md:text-[26px]">
-                  <Link href={`/categories/${k.id}`} className="hover:text-accent-soft">
-                    {k.name}
-                  </Link>
-                </h3>
-                <span className="text-[11px] tracking-[0.15em] text-subtle md:text-[13px]">
-                  {k.nameEn}
-                </span>
-              </div>
-              <ul>
+              {/* PC：左に大きな飾り文字 */}
+              <Link
+                href={`/categories#${k.id}`}
+                className="hidden flex-[0_0_160px] flex-col items-center justify-center gap-2.5 border-r border-line bg-bg px-4 py-8 text-fg hover:text-accent-soft md:flex"
+              >
+                <Glyph char={k.glyph} className="text-[76px] text-accent" />
+                <span className="text-[22px] font-black">{k.name}</span>
+                <span className="text-xs tracking-[0.2em] text-subtle">{k.nameEn}</span>
+              </Link>
+              {/* モバイル：見出し行 */}
+              <Link
+                href={`/categories#${k.id}`}
+                className="flex items-baseline justify-between gap-3 px-[18px] pb-2 pt-[18px] text-fg md:hidden"
+              >
+                <h3 className="text-xl font-black">{k.name}</h3>
+                <span className="text-[11px] tracking-[0.15em] text-subtle">{k.nameEn}</span>
+              </Link>
+              <ul className="min-w-0 flex-1 px-[18px] pb-1.5 md:px-6 md:pb-3.5 md:pt-2.5">
                 {k.subs.map((s) => (
-                  <li
-                    key={s.id}
-                    className="flex flex-col gap-0.5 border-t border-line py-3 md:flex-row md:justify-between md:gap-3"
-                  >
+                  <li key={s.id}>
                     <Link
-                      href={`/categories/${s.id}`}
-                      className="text-[15px] font-bold text-fg hover:text-accent-soft md:whitespace-nowrap md:text-base"
+                      // 日本酒は「お酒の分類」で小分類ではなく香味の4タイプで説明しているので、日本酒の節へ
+                      href={`/categories#${k.id === "sake" ? k.id : s.id}`}
+                      className="flex min-h-11 items-center justify-between gap-3 border-t border-line py-3 text-fg hover:text-accent-soft md:border-b md:border-t-0"
                     >
-                      {s.name}
+                      <span className="flex min-w-0 flex-col gap-0.5">
+                        <span className="text-[15px] font-bold md:text-base">{s.name}</span>
+                        <span className="text-[13px] text-muted">{s.names.join(" ・ ")}</span>
+                      </span>
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                        className="hidden flex-none text-subtle md:block"
+                      >
+                        <path d="M9 5l7 7-7 7" />
+                      </svg>
                     </Link>
-                    <span className="flex flex-wrap gap-x-2 text-[13px] text-muted md:justify-end md:text-sm">
-                      {s.brands.map((b) => (
-                        <Link key={b.slug} href={`/brands/${b.slug}`} className="hover:text-fg">
-                          {b.name}
-                        </Link>
-                      ))}
-                    </span>
                   </li>
                 ))}
               </ul>
