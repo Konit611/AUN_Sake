@@ -18,9 +18,15 @@ import {
   getSubCategories,
   getSubCategory,
 } from "@/lib/data";
+import { defaultLocale, format, getDictionary } from "@/lib/i18n";
+import { paths } from "@/lib/routes";
 import { pageMetadata } from "@/lib/site";
 
-export const metadata: Metadata = pageMetadata({ path: "/" });
+// いまは既定の言語だけ（言語を足したらルートの params から）
+const locale = defaultLocale;
+const t = getDictionary(locale);
+
+export const metadata: Metadata = pageMetadata({ path: paths.home(locale), locale });
 
 // ホームで選べる銘柄は大分類ごとにこの数まで（content/brands/*.ts の並び順）。残りは /brands へ。
 // 全銘柄をクライアントに渡すと、銘柄数に比例してホームが重くなるため
@@ -84,33 +90,33 @@ export default function Home() {
       <section className="mx-auto flex max-w-[1200px] flex-col gap-5 px-5 pb-9 pt-10 md:flex-row md:flex-wrap md:items-center md:gap-12 md:px-6 md:pb-16 md:pt-20">
         <div className="flex min-w-0 flex-col gap-5 md:flex-[1_1_460px] md:gap-[22px]">
           <p className="text-[13px] font-bold tracking-[0.2em] text-accent md:text-sm">
-            酒と肴の、阿吽の呼吸。
+            {t.home.catch}
           </p>
           <h1 className="text-4xl font-black leading-[1.35] md:text-[56px] md:leading-[1.3]">
-            酒がひらき、
+            {t.home.titleLine1}
             <br />
-            肴がむすぶ。
+            {t.home.titleLine2}
           </h1>
           <p className="hidden max-w-[480px] text-lg leading-[1.9] text-muted md:block">
-            「阿」は口をひらいて出す最初の音、「吽」は口をとじて出す最後の音。AUNは、一本の酒と一皿の肴が息を合わせる瞬間を、銘柄ごとに紹介します。
+            {t.home.intro}
           </p>
         </div>
         <div className="flex min-w-0 justify-center gap-3 md:flex-[1_1_420px] md:gap-5">
           <div className="flex h-[150px] flex-1 flex-col items-center justify-center gap-1 rounded-[80px_80px_16px_16px] border-2 border-line-strong md:aspect-[1/1.25] md:h-auto md:max-w-[220px] md:gap-2 md:rounded-[120px_120px_24px_24px]">
             <Glyph char="阿" className="text-[64px] md:text-[120px]" />
             <span className="text-xs tracking-[0.25em] text-muted md:text-[15px] md:tracking-[0.3em]">
-              酒 ・ ひらく
+              {t.home.aLabel}
             </span>
           </div>
           <div className="flex h-[150px] flex-1 flex-col items-center justify-center gap-1 rounded-[80px_80px_16px_16px] bg-accent text-bg md:aspect-[1/1.25] md:h-auto md:max-w-[220px] md:gap-2 md:rounded-[120px_120px_24px_24px]">
             <Glyph char="吽" className="text-[64px] md:text-[120px]" />
             <span className="text-xs font-bold tracking-[0.25em] md:text-[15px] md:tracking-[0.3em]">
-              肴 ・ むすぶ
+              {t.home.unLabel}
             </span>
           </div>
         </div>
         <p className="text-[15px] leading-[1.9] text-muted md:hidden">
-          一本の酒と一皿の肴が息を合わせる瞬間を、銘柄ごとに紹介します。
+          {t.home.introShort}
         </p>
       </section>
 
@@ -118,14 +124,14 @@ export default function Home() {
       <section id="pick" className="scroll-mt-16 border-y border-line bg-surface">
         <div className="mx-auto flex max-w-[1200px] flex-col gap-5 py-9 md:gap-8 md:px-6 md:py-[72px]">
           <div className="px-5 md:px-0">
-            <SectionHeading eyebrow="FIND YOUR PAIR" title="銘柄から、息の合う肴を探す" />
+            <SectionHeading eyebrow="FIND YOUR PAIR" title={t.home.findTitle} />
           </div>
-          <PairFinder categories={finder} />
+          <PairFinder categories={finder} locale={locale} />
           <p className="px-5 text-xs leading-[1.7] text-subtle md:px-0 md:text-[13px]">
-            相性の評価はAUN編集部の主観です。
+            {t.subjective}
             <br className="md:hidden" />
             <span className="md:ml-2">
-              阿吽＝ぴたりと合う ／ 好相性＝よく合う ／ 意外＝一度試してほしい
+              {t.levelLegend}
             </span>
           </p>
         </div>
@@ -136,7 +142,7 @@ export default function Home() {
         id="kinds"
         className="mx-auto flex max-w-[1200px] scroll-mt-16 flex-col gap-4 px-5 py-10 md:gap-7 md:px-6 md:py-[72px]"
       >
-        <SectionHeading eyebrow="CATEGORIES" title="お酒の分類から探す" />
+        <SectionHeading eyebrow="CATEGORIES" title={t.home.categoriesTitle} />
         <div className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(auto-fit,minmax(min(100%,500px),1fr))] md:gap-5">
           {tree.map((k) => (
             <div
@@ -145,7 +151,7 @@ export default function Home() {
             >
               {/* PC：左に大きな飾り文字 */}
               <Link
-                href={`/categories#${k.id}`}
+                href={paths.categories(locale, k.id)}
                 className="hidden flex-[0_0_160px] flex-col items-center justify-center gap-2.5 border-r border-line bg-bg px-4 py-8 text-fg hover:text-accent-soft md:flex"
               >
                 <Glyph char={k.glyph} className="text-[76px] text-accent" />
@@ -154,7 +160,7 @@ export default function Home() {
               </Link>
               {/* モバイル：見出し行 */}
               <Link
-                href={`/categories#${k.id}`}
+                href={paths.categories(locale, k.id)}
                 className="flex items-baseline justify-between gap-3 px-[18px] pb-2 pt-[18px] text-fg md:hidden"
               >
                 <h3 className="text-xl font-black">{k.name}</h3>
@@ -165,14 +171,15 @@ export default function Home() {
                   <li key={s.id}>
                     <Link
                       // 専用ガイドの大分類（日本酒など）は小分類カードがないので、大分類の節へ
-                      href={`/categories#${k.guide === "custom" ? k.id : s.id}`}
+                      href={paths.categories(locale, k.guide === "custom" ? k.id : s.id)}
                       className="flex min-h-11 items-center justify-between gap-3 border-t border-line py-3 text-fg hover:text-accent-soft md:border-b md:border-t-0"
                     >
                       <span className="flex min-w-0 flex-col gap-0.5">
                         <span className="text-[15px] font-bold md:text-base">{s.name}</span>
                         <span className="text-[13px] text-muted">
-                          {s.names.slice(0, TREE_NAMES).join(" ・ ")}
-                          {s.names.length > TREE_NAMES && ` ほか${s.names.length - TREE_NAMES}`}
+                          {s.names.slice(0, TREE_NAMES).join(t.common.sep)}
+                          {s.names.length > TREE_NAMES &&
+                            ` ${format(t.common.others, { count: s.names.length - TREE_NAMES })}`}
                         </span>
                       </span>
                       <svg
@@ -205,19 +212,20 @@ export default function Home() {
           className="mx-auto flex max-w-[1200px] scroll-mt-16 flex-col gap-4 pb-12 md:gap-7 md:px-6 md:pb-20"
         >
           <div className="flex items-end justify-between gap-4 px-5 md:px-0">
-            <SectionHeading eyebrow="PAIRING NOTES" title="最新のペアリングノート" />
+            <SectionHeading eyebrow="PAIRING NOTES" title={t.home.notesTitle} />
             <Link
-              href="/notes"
+              href={paths.notes(locale)}
               className="flex-none py-3 text-sm font-bold text-accent hover:text-accent-soft md:text-[15px]"
             >
-              すべて見る →
+              {t.common.seeAll}
             </Link>
           </div>
           <div className="flex gap-3 overflow-x-auto px-5 pb-1 md:grid md:grid-cols-[repeat(auto-fill,minmax(300px,1fr))] md:gap-5 md:overflow-visible md:px-0 md:pb-0">
             {notes.map((n) => (
               <NoteCard
                 key={n.slug}
-                href={`/notes/${n.slug}`}
+                href={paths.note(n.slug, locale)}
+                locale={locale}
                 title={n.title}
                 brandName={getBrand(n.brandSlug)!.name}
                 foodName={getFood(n.foodSlug)!.name}

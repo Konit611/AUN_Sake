@@ -1,3 +1,5 @@
+import type { Localized } from "./i18n/localized";
+
 export type CategoryId = "shochu" | "beer" | "sake" | "wine";
 
 export type Category = {
@@ -43,8 +45,8 @@ export type ServeStyle = {
   name: string;
 };
 
-/** 「銘柄から探す」の「合わせたい肴」 */
-export const FOOD_GENRES = ["魚介", "肉料理", "揚げ物", "煮物", "辛い料理"] as const;
+/** 「銘柄から探す」の「合わせたい肴」。表示名は辞書（lib/i18n）の genres */
+export const FOOD_GENRES = ["seafood", "meat", "fried", "simmered", "spicy"] as const;
 export type FoodGenre = (typeof FOOD_GENRES)[number];
 
 export type Food = {
@@ -56,17 +58,17 @@ export type Food = {
   image?: string;
 };
 
-/** 「銘柄から探す」の「味わい」 */
-export const TASTE_KEYWORDS = ["すっきり", "キレ", "コク", "甘み", "華やか", "軽快"] as const;
+/** 「銘柄から探す」の「味わい」。表示名は辞書（lib/i18n）の tastes */
+export const TASTE_KEYWORDS = ["clean", "crisp", "rich", "sweet", "floral", "light"] as const;
 export type TasteKeyword = (typeof TASTE_KEYWORDS)[number];
 
-/** 阿吽＝ぴたりと合う ／ 好相性＝よく合う ／ 意外＝一度試してほしい */
+/** 阿吽＝ぴたりと合う ／ 好相性＝よく合う ／ 意外＝一度試してほしい（表示名は辞書の levels） */
 export type PairingLevel = "aun" | "good" | "surprise";
 
-export const PAIRING_LEVELS: Record<PairingLevel, { label: string; order: number }> = {
-  aun: { label: "阿吽", order: 0 },
-  good: { label: "好相性", order: 1 },
-  surprise: { label: "意外", order: 2 },
+export const PAIRING_LEVELS: Record<PairingLevel, { order: number }> = {
+  aun: { order: 0 },
+  good: { order: 1 },
+  surprise: { order: 2 },
 };
 
 /** 1–5 */
@@ -155,3 +157,21 @@ export type PairingNote = {
 export function pairingId(brandSlug: string, foodSlug: string, serveId?: string): string {
   return serveId ? `${brandSlug}/${foodSlug}@${serveId}` : `${brandSlug}/${foodSlug}`;
 }
+
+// --- content/ に書く形 ---
+// 訳せる文字列は Localized（そのまま書けば日本語、{ ja, ko } で訳を足せる）。
+// lib/data.ts が言語ごとに文字列へ解決するので、ページやコンポーネントは上の型（string）だけを見る。
+
+type Translatable<T, K extends keyof T> = Omit<T, K> & { [P in K]: T[P] extends string ? Localized : T[P] extends string | undefined ? Localized | undefined : T[P] extends string[] ? Localized<string[]> : never };
+
+export type CategorySource = Translatable<Category, "name" | "lead">;
+export type SubCategorySource = Translatable<SubCategory, "name" | "meta" | "taste" | "pair">;
+export type ServeStyleSource = Translatable<ServeStyle, "name">;
+export type FoodSource = Translatable<Food, "name">;
+export type BrandServeSource = Translatable<BrandServe, "how" | "note">;
+export type PairingSource = Translatable<PairingInput, "why">;
+export type BrandSource = Omit<Translatable<BrandInput, "name" | "maker" | "region" | "taste" | "tags" | "avoid">, "serves" | "pairings"> & {
+  serves: BrandServeSource[];
+  pairings: PairingSource[];
+};
+export type PairingNoteSource = Translatable<PairingNote, "title" | "author" | "lead" | "quote">;

@@ -28,12 +28,16 @@ lib/
 | Category | `id` | 배열 순서 = 표시 순서, 검색용 `kana`, `glyph`(焼・麦・米・葡), `lead`(분류 해설) |
 | SubCategory | `id` | `categoryId`, `kana`, 해설 `meta`/`taste`/`pair`, 아직 페이지 없는 대표 브랜드 `examples`. Category와 같은 `/categories/[id]`를 쓰므로 id가 겹치면 안 됨 |
 | ServeStyle | `id` | お湯割り, ロック, 冷酒, 燗 … |
-| Food | `slug` | 안주 → 술 역방향 조회 (`/foods/[slug]`), `kana`, `genres`(魚介・肉料理・揚げ物・煮物・辛い料理) |
-| Brand | `slug` | `kana`, `subCategoryId`, `alsoIn`(추가 소분류), `tastes`(すっきり・キレ・コク・甘み・華やか・軽快), `serves`(음용법별 비율/메모), `recommendedServe`, `tasteChart`(1–5), `avoid` |
+| Food | `slug` | 안주 → 술 역방향 조회 (`/foods/[slug]`), `kana`, `genres`(id: seafood・meat・fried・simmered・spicy, 라벨은 사전) |
+| Brand | `slug` | `kana`, `subCategoryId`, `alsoIn`(추가 소분류), `tastes`(id: clean・crisp・rich・sweet・floral・light, 라벨은 사전), `serves`(음용법별 비율/메모), `recommendedServe`, `tasteChart`(1–5), `avoid` |
 | Pairing | brand × food × serve (`pairingId()`) | `level`: `aun`(阿吽) / `good`(好相性) / `surprise`(意外), `serve`가 있으면 브랜드 페이지 「飲み方別」에 표시 |
 | PairingNote | `slug` | `brandSlug`, `foodSlug`, `serveId`(등록된 궁합이어야 함), `publishedAt`, `author`, `lead`(요약), `quote`(阿吽のひとこと), `draft` |
 
 Pairing은 편집 편의를 위해 브랜드 파일 안에 적고, `lib/data.ts`가 평탄화한다.
+
+## 번역
+
+번역 가능한 필드(이름, 설명, 이유, 기사 제목 등)는 `Localized`라서 `{ ja, ko }` 형태로 번역을 추가할 수 있다. `lib/data.ts`가 언어별 문자열로 바꾼다. [i18n.md](i18n.md)
 
 ## 검증
 

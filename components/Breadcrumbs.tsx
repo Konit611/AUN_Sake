@@ -1,12 +1,21 @@
 import Link from "next/link";
 import { Fragment } from "react";
+import { getDictionary, type Locale } from "@/lib/i18n";
 
 export type Crumb = { label: string; href?: string };
 
 /** 最後の項目は現在のページ（href なし） */
-export function Breadcrumbs({ items, className = "" }: { items: Crumb[]; className?: string }) {
+export function Breadcrumbs({
+  items,
+  locale,
+  className = "",
+}: {
+  items: Crumb[];
+  locale: Locale;
+  className?: string;
+}) {
   return (
-    <nav aria-label="パンくず" className={`text-xs text-muted md:text-sm ${className}`}>
+    <nav aria-label={getDictionary(locale).common.breadcrumb} className={`text-xs text-muted md:text-sm ${className}`}>
       <ol className="flex flex-wrap items-center gap-x-2">
         {items.map((item, i) => {
           const last = i === items.length - 1;

@@ -8,6 +8,7 @@ import {
   parseFilters,
   type BrandFilters,
 } from "@/lib/brand-filter";
+import { format, getDictionary, type Locale } from "@/lib/i18n";
 import { normalize } from "@/lib/search";
 import type { Category, CategoryId, FoodGenre, TasteKeyword } from "@/lib/types";
 import { FOOD_GENRES, TASTE_KEYWORDS } from "@/lib/types";
@@ -80,7 +81,17 @@ function ChipGroup({
   );
 }
 
-export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kinds: ExplorerKind[] }) {
+export function BrandExplorer({
+  brands,
+  kinds,
+  locale,
+}: {
+  brands: ExplorerBrand[];
+  kinds: ExplorerKind[];
+  locale: Locale;
+}) {
+  const t = getDictionary(locale);
+  const tb = t.brandsPage;
   const search = useSyncExternalStore(
     subscribe,
     () => window.location.search,
@@ -118,27 +129,27 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
 
   const results = filterBrands(brands, f, (b) => haystacks.get(b.slug)!);
 
-  const kindItems = [{ id: "all", name: "すべて" }, ...kinds];
-  const tasteItems = TASTE_KEYWORDS.map((t) => ({ id: t, name: t }));
-  const foodItems = FOOD_GENRES.map((g) => ({ id: g, name: g }));
+  const kindItems = [{ id: "all", name: t.common.all }, ...kinds];
+  const tasteItems = TASTE_KEYWORDS.map((id) => ({ id, name: t.tastes[id] }));
+  const foodItems = FOOD_GENRES.map((id) => ({ id, name: t.genres[id] }));
   const active = (f.taste ? 1 : 0) + (f.food ? 1 : 0);
 
   const refine = (
     <>
       <div className="flex flex-col gap-2.5">
-        <p className="text-[13px] font-bold md:text-sm">味わい</p>
-        <ChipGroup label="味わい" items={tasteItems} value={f.taste} onPick={(id) => toggle("taste", id)} className="flex-wrap" />
+        <p className="text-[13px] font-bold md:text-sm">{tb.taste}</p>
+        <ChipGroup label={tb.taste} items={tasteItems} value={f.taste} onPick={(id) => toggle("taste", id)} className="flex-wrap" />
       </div>
       <div className="flex flex-col gap-2.5">
-        <p className="text-[13px] font-bold md:text-sm">合わせたい肴</p>
-        <ChipGroup label="合わせたい肴" items={foodItems} value={f.food} onPick={(id) => toggle("food", id)} className="flex-wrap" />
+        <p className="text-[13px] font-bold md:text-sm">{tb.food}</p>
+        <ChipGroup label={tb.food} items={foodItems} value={f.food} onPick={(id) => toggle("food", id)} className="flex-wrap" />
       </div>
       <button
         type="button"
         onClick={() => update(EMPTY_FILTERS)}
         className="min-h-11 cursor-pointer rounded-xl border border-line-strong text-sm text-muted hover:text-fg"
       >
-        条件をクリア
+        {tb.clear}
       </button>
     </>
   );
@@ -147,7 +158,7 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
     <div className="flex flex-col gap-4 md:gap-8">
       <form role="search" onSubmit={(e) => e.preventDefault()} className="px-5 md:px-0">
         <label htmlFor="brand-q" className="sr-only">
-          銘柄名・蔵元・産地で検索
+          {tb.searchLabel}
         </label>
         <div className="relative">
           <svg
@@ -170,7 +181,7 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
             autoComplete="off"
             value={f.q}
             onChange={(e) => update({ q: e.target.value })}
-            placeholder="銘柄名・蔵元・産地で検索（例：獺祭、新潟、麦）"
+            placeholder={tb.searchPlaceholder}
             className="min-h-[52px] w-full rounded-[14px] border-2 border-line-strong bg-surface pl-[46px] pr-4 text-base text-fg placeholder:text-subtle focus:border-accent focus:outline-none md:min-h-[60px] md:rounded-2xl md:pl-14 md:text-[17px] [&::-webkit-search-cancel-button]:appearance-none"
           />
         </div>
@@ -178,7 +189,7 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
 
       {/* モバイル：種類は横スクロール */}
       <ChipGroup
-        label="お酒の種類"
+        label={t.finder.kindGroup}
         items={kindItems}
         value={f.kind}
         onPick={(id) => update({ kind: id })}
@@ -188,12 +199,12 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:gap-8">
         {/* PC：左の絞り込み */}
         <aside
-          aria-label="絞り込み"
+          aria-label={tb.refine}
           className="hidden w-[240px] flex-none flex-col gap-6 rounded-[20px] border border-line bg-surface p-[22px] md:flex"
         >
           <div className="flex flex-col gap-2.5">
-            <p className="text-sm font-bold">種類</p>
-            <ChipGroup label="お酒の種類" items={kindItems} value={f.kind} onPick={(id) => update({ kind: id })} className="flex-wrap" />
+            <p className="text-sm font-bold">{tb.kind}</p>
+            <ChipGroup label={t.finder.kindGroup} items={kindItems} value={f.kind} onPick={(id) => update({ kind: id })} className="flex-wrap" />
           </div>
           {refine}
         </aside>
@@ -201,10 +212,10 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
         <div className="flex min-w-0 flex-1 flex-col gap-3 md:gap-[18px]">
           <div className="flex flex-wrap items-center justify-between gap-3 px-5 md:px-0">
             <p aria-live="polite" className="text-sm text-muted md:text-[15px]">
-              <strong className="text-lg text-fg md:text-xl">{results.length}</strong> 銘柄
+              <strong className="text-lg text-fg md:text-xl">{results.length}</strong> {tb.count}
             </p>
             <p className="hidden text-[13px] text-subtle md:block">
-              カードの「吽」は、AUN編集部がいちばん息が合うと考える肴です。
+              {tb.cardNote}
             </p>
             <button
               type="button"
@@ -216,7 +227,7 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
                 <path d="M4 6h16M7 12h10M10 18h4" />
               </svg>
-              {active ? `絞り込み（${active}）` : "絞り込み"}
+              {active ? format(tb.refineActive, { count: active }) : tb.refine}
             </button>
           </div>
 
@@ -233,16 +244,19 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
           {results.length === 0 ? (
             <div className="mx-5 flex flex-col items-center gap-2.5 rounded-2xl border border-dashed border-line-dashed px-5 py-9 text-center md:mx-0 md:gap-3 md:rounded-[20px] md:py-12">
               <Glyph char="吽" className="text-[40px] text-line-dashed md:text-5xl" />
-              <p className="text-base font-bold md:text-[17px]">条件に合う銘柄が見つかりませんでした</p>
+              <p className="text-base font-bold md:text-[17px]">{tb.emptyTitle}</p>
               <p className="text-[13px] text-muted md:text-sm">
-                キーワードを短くするか、条件を減らしてみてください。
+                {tb.emptyHint}
               </p>
             </div>
           ) : (
             <ul className={`${brandGridClass} px-5 md:px-0`}>
               {results.slice(0, shown).map((b) => (
                 <li key={b.slug}>
-                  <BrandCard b={{ ...b, kindName: kindById.get(b.kind)!.name, look: kindById.get(b.kind)!.look }} />
+                  <BrandCard
+                    b={{ ...b, kindName: kindById.get(b.kind)!.name, look: kindById.get(b.kind)!.look }}
+                    locale={locale}
+                  />
                 </li>
               ))}
             </ul>
@@ -253,7 +267,7 @@ export function BrandExplorer({ brands, kinds }: { brands: ExplorerBrand[]; kind
               onClick={() => setPage({ search, shown: shown + PAGE_SIZE })}
               className="mx-auto flex min-h-11 cursor-pointer items-center rounded-full border-2 border-line-strong px-6 text-[15px] font-bold text-fg hover:border-subtle"
             >
-              もっと見る（残り{results.length - shown}）
+              {format(t.common.showMore, { count: results.length - shown })}
             </button>
           )}
         </div>

@@ -37,6 +37,11 @@ CSS나 콘텐츠를 바꿨는데 화면에 반영되지 않으면 `rm -rf .next`
 | `/sitemap.xml`, `/robots.txt` | SEO |
 | `…/opengraph-image` | 공유 썸네일 (사이트 공통, 브랜드별, 기사별). `lib/og.tsx`, 폰트는 `assets/fonts` (OFL) |
 
+## 화면 문구
+
+화면에 나오는 문구는 `lib/i18n/dictionaries/ja.ts`에 둔다. `app/`·`components/`에 일본어를 직접 쓰면 `npm test`가 실패한다.
+링크는 `lib/routes.ts`의 `paths`로 만든다. 자세한 내용은 [docs/plan/i18n.md](docs/plan/i18n.md).
+
 ## 콘텐츠 추가
 
 콘텐츠는 `content/`에만 있다. 페이지 코드는 `lib/data.ts`의 함수로만 읽는다.
@@ -56,7 +61,7 @@ content/
 ### 브랜드 추가
 
 1. 안주가 `content/foods.ts`에 없으면 먼저 추가한다. 한자가 들어간 이름은 검색용 `kana`(히라가나)를 넣고,
-   `genres`(魚介・肉料理・揚げ物・煮物・辛い料理 중 해당하는 것, 없으면 `[]`)를 넣는다.
+   `genres`(seafood・meat・fried・simmered・spicy = 魚介・肉料理・揚げ物・煮物・辛い料理 중 해당하는 것, 없으면 `[]`)를 넣는다.
    브랜드의 「合わせたい肴」 필터는 페어링한 안주의 `genres`에서 자동으로 정해진다.
 2. 소분류가 없으면 `content/categories.ts`에 추가한다. 대분류 id와 겹치면 안 된다.
    소분류의 `examples`(아직 페이지가 없는 대표 브랜드 이름)에 이 브랜드가 있으면 지운다 (남아 있으면 빌드 실패).
@@ -74,7 +79,7 @@ content/
   abv: 25,                            // 선택
   taste: "…",                         // 한두 문장
   tags: ["…", "…"],
-  tastes: ["華やか", "軽快"],         // すっきり・キレ・コク・甘み・華やか・軽快 중에서. 「銘柄から探す」 필터용
+  tastes: ["floral", "light"],        // clean・crisp・rich・sweet・floral・light (すっきり・キレ・コク・甘み・華やか・軽快). 「銘柄から探す」 필터용
   tasteChart: { sweetness: 3, aroma: 4, kire: 3, koku: 4 },  // 선택, 1–5
   serves: [
     { serveId: "rock", how: "大きめの氷で", note: "…" },     // how·note 선택
@@ -119,3 +124,4 @@ SITE_URL=https://example.com docker compose up -d --build
 
 - [docs/plan/data-structure.md](docs/plan/data-structure.md) — 데이터 구조와 검증 규칙
 - [docs/plan/db-migration.md](docs/plan/db-migration.md) — DB 이전 계획 (테이블, 제약, 순서)
+- [docs/plan/i18n.md](docs/plan/i18n.md) — 다국어 구조와 언어 추가 순서

@@ -1,10 +1,13 @@
 import { ImageResponse } from "next/og";
 import { notFound } from "next/navigation";
+import { defaultLocale, format, getDictionary } from "@/lib/i18n";
 import { fitFontSize, og, OgFrame, ogContentType, ogFonts, OgGlyph, ogSize } from "@/lib/og";
 import { getBrand, getBrands, getFood, getPairings, getSubCategory } from "@/lib/data";
-import { PAIRING_LEVELS } from "@/lib/types";
 
-export const alt = "AUN の銘柄と、息の合う肴";
+const locale = defaultLocale;
+const t = getDictionary(locale);
+
+export const alt = t.og.brandAlt;
 export const size = ogSize;
 export const contentType = ogContentType;
 
@@ -24,10 +27,12 @@ export default async function Image({ params }: { params: Promise<{ slug: string
 
   return new ImageResponse(
     (
-      <OgFrame>
+      <OgFrame locale={locale}>
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div style={{ display: "flex", fontSize: 28, color: og.muted, letterSpacing: "0.1em" }}>
-            {sub.name} ・ {brand.maker}（{brand.region}）
+            {sub.name}
+            {t.common.sep}
+            {format(t.common.makerRegion, { maker: brand.maker, region: brand.region })}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 28 }}>
             <OgGlyph char="阿" size={96} color={og.fg} />
@@ -58,7 +63,7 @@ export default async function Image({ params }: { params: Promise<{ slug: string
                   fontSize: 26,
                 }}
               >
-                {PAIRING_LEVELS[best.level].label}
+                {t.levels[best.level]}
               </div>
               <div style={{ display: "flex", fontSize: 48 }}>{food.name}</div>
             </div>

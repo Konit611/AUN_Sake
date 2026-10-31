@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { PAIRING_LEVELS, type PairingLevel } from "@/lib/types";
+import { getDictionary, type Locale } from "@/lib/i18n";
+import type { PairingLevel } from "@/lib/types";
 
 /** 英字の小見出し + 見出し */
 export function SectionHeading({
@@ -34,12 +35,12 @@ const BADGE: Record<PairingLevel, string> = {
   surprise: "border-2 border-dashed border-mint text-mint-fg px-1.5 py-[3px]",
 };
 
-export function PairingBadge({ level }: { level: PairingLevel }) {
+export function PairingBadge({ level, locale }: { level: PairingLevel; locale: Locale }) {
   return (
     <span
       className={`inline-block min-w-[52px] flex-none rounded-lg text-center text-[13px] font-bold ${BADGE[level]}`}
     >
-      {PAIRING_LEVELS[level].label}
+      {getDictionary(locale).levels[level]}
     </span>
   );
 }

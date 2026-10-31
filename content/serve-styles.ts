@@ -1,6 +1,6 @@
-import type { ServeStyle } from "@/lib/types";
+import type { ServeStyleSource } from "@/lib/types";
 
-export const serveStyles: ServeStyle[] = [
+export const serveStyles: ServeStyleSource[] = [
   { id: "straight", name: "ストレート" },
   { id: "rock", name: "ロック" },
   { id: "mizuwari", name: "水割り" },

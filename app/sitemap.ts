@@ -6,6 +6,7 @@ import {
   getNotes,
   getSubCategoriesWithBrands,
 } from "@/lib/data";
+import { paths } from "@/lib/routes";
 import { SITE_URL } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -13,15 +14,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const notes = getNotes();
 
   return [
-    { url: url("/"), lastModified: notes[0]?.publishedAt },
-    { url: url("/notes"), lastModified: notes[0]?.publishedAt },
-    { url: url("/brands") },
-    { url: url("/categories") },
-    { url: url("/foods") },
-    ...getCategoriesWithBrands().map((c) => ({ url: url(`/categories/${c.id}`) })),
-    ...getSubCategoriesWithBrands().map((s) => ({ url: url(`/categories/${s.id}`) })),
-    ...getBrands().map((b) => ({ url: url(`/brands/${b.slug}`) })),
-    ...getFoodsWithPairings().map((f) => ({ url: url(`/foods/${f.slug}`) })),
-    ...notes.map((n) => ({ url: url(`/notes/${n.slug}`), lastModified: n.publishedAt })),
+    { url: url(paths.home()), lastModified: notes[0]?.publishedAt },
+    { url: url(paths.notes()), lastModified: notes[0]?.publishedAt },
+    { url: url(paths.brands()) },
+    { url: url(paths.categories()) },
+    { url: url(paths.foods()) },
+    ...getCategoriesWithBrands().map((c) => ({ url: url(paths.category(c.id)) })),
+    ...getSubCategoriesWithBrands().map((s) => ({ url: url(paths.category(s.id)) })),
+    ...getBrands().map((b) => ({ url: url(paths.brand(b.slug)) })),
+    ...getFoodsWithPairings().map((f) => ({ url: url(paths.food(f.slug)) })),
+    ...notes.map((n) => ({ url: url(paths.note(n.slug)), lastModified: n.publishedAt })),
   ];
 }

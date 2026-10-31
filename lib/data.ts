@@ -1,13 +1,15 @@
 import "server-only";
 
-import { categories, subCategories } from "@/content/categories";
-import { serveStyles } from "@/content/serve-styles";
-import { foods } from "@/content/foods";
+import { categories as categorySources, subCategories as subCategorySources } from "@/content/categories";
+import { serveStyles as serveStyleSources } from "@/content/serve-styles";
+import { foods as foodSources } from "@/content/foods";
 import { shochuBrands } from "@/content/brands/shochu";
 import { beerBrands } from "@/content/brands/beer";
 import { sakeBrands } from "@/content/brands/sake";
 import { wineBrands } from "@/content/brands/wine";
-import { notes } from "@/content/notes";
+import { notes as noteSources } from "@/content/notes";
+import { defaultLocale } from "./i18n/config";
+import { localize } from "./i18n/localized";
 import { validateContent } from "./validate";
 import {
   FOOD_GENRES,
@@ -15,6 +17,7 @@ import {
   pairingId,
   type Brand,
   type BrandInput,
+  type BrandSource,
   type BrandServe,
   type Category,
   type CategoryId,
@@ -26,7 +29,45 @@ import {
   type SubCategory,
 } from "./types";
 
-const brandInputs: BrandInput[] = [...shochuBrands, ...beerBrands, ...sakeBrands, ...wineBrands];
+// --- content/ の訳せる文字列を、表示する言語の文字列にする ---
+// いまは既定の言語（日本語）だけ。言語を足したら、ここを言語ごとに作って各関数に locale を渡す（docs/plan/i18n.md）
+const L = defaultLocale;
+
+const categories: Category[] = categorySources.map((c) => ({
+  ...c,
+  name: localize(c.name, L),
+  lead: localize(c.lead, L),
+}));
+const subCategories: SubCategory[] = subCategorySources.map((s) => ({
+  ...s,
+  name: localize(s.name, L),
+  meta: localize(s.meta, L),
+  taste: localize(s.taste, L),
+  pair: localize(s.pair, L),
+}));
+const serveStyles: ServeStyle[] = serveStyleSources.map((s) => ({ ...s, name: localize(s.name, L) }));
+const foods: Food[] = foodSources.map((f) => ({ ...f, name: localize(f.name, L) }));
+const brandSources: BrandSource[] = [...shochuBrands, ...beerBrands, ...sakeBrands, ...wineBrands];
+const brandInputs: BrandInput[] = brandSources.map(
+  (b) => ({
+    ...b,
+    name: localize(b.name, L),
+    maker: localize(b.maker, L),
+    region: localize(b.region, L),
+    taste: localize(b.taste, L),
+    tags: localize(b.tags, L),
+    avoid: localize(b.avoid, L),
+    serves: b.serves.map((s) => ({ ...s, how: localize(s.how, L), note: localize(s.note, L) })),
+    pairings: b.pairings.map((p) => ({ ...p, why: localize(p.why, L) })),
+  }),
+);
+const notes: PairingNote[] = noteSources.map((n) => ({
+  ...n,
+  title: localize(n.title, L),
+  author: localize(n.author, L),
+  lead: localize(n.lead, L),
+  quote: localize(n.quote, L),
+}));
 
 // 参照ミスがあればここで落ちるので、dev でもビルドでも気づける
 const errors = validateContent({
