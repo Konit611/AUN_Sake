@@ -30,6 +30,7 @@ CSS나 콘텐츠를 바꿨는데 화면에 반영되지 않으면 `rm -rf .next`
 | `/notes`, `/notes/[slug]` | 페어링 노트 (기사) |
 | `/search` | 검색 (브라우저에서 동작, `?q=`) |
 | `/sitemap.xml`, `/robots.txt` | SEO |
+| `…/opengraph-image` | 공유 썸네일 (사이트 공통, 브랜드별, 기사별). `lib/og.tsx`, 폰트는 `assets/fonts` (OFL) |
 
 ## 콘텐츠 추가
 

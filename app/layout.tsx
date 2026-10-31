@@ -35,6 +35,8 @@ export const metadata: Metadata = {
     locale: "ja_JP",
     type: "website",
   },
+  // 画像は各ルートの opengraph-image.tsx（X は og:image を使う）
+  twitter: { card: "summary_large_image" },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
