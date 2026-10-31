@@ -1,4 +1,4 @@
-import { normalize } from "./search";
+import { rankByRelevance, searchTerms, type Searchable } from "./search";
 import { FOOD_GENRES, TASTE_KEYWORDS, type FoodGenre, type TasteKeyword } from "./types";
 
 // 「銘柄から探す」の絞り込み。URL（?q=&kind=&taste=&food=）との相互変換と、絞り込みそのもの
@@ -46,20 +46,20 @@ export type FilterableBrand = {
 };
 
 /**
- * 条件をすべて満たす銘柄。キーワードは空白で区切った語をすべて含むもの。
- * haystackOf は normalize 済みの検索対象を返す。
+ * 条件をすべて満たす銘柄。キーワードは空白で区切った語をすべて含むもので、
+ * キーワードがあれば関連度の高い順（名前・よみに当たるものが先）、なければ元の並び。
+ * searchableOf は normalize 済みの名前・よみと検索対象を返す。
  */
 export function filterBrands<B extends FilterableBrand>(
   brands: readonly B[],
   f: BrandFilters,
-  haystackOf: (b: B) => string,
+  searchableOf: (b: B) => Searchable,
 ): B[] {
-  const terms = f.q.split(/\s+/).map(normalize).filter(Boolean);
-  return brands.filter(
+  const matched = brands.filter(
     (b) =>
       (f.kind === "all" || b.kind === f.kind) &&
       (!f.taste || b.tastes.includes(f.taste as TasteKeyword)) &&
-      (!f.food || b.genres.includes(f.food as FoodGenre)) &&
-      terms.every((t) => haystackOf(b).includes(t)),
+      (!f.food || b.genres.includes(f.food as FoodGenre)),
   );
+  return rankByRelevance(matched, searchTerms(f.q), searchableOf);
 }

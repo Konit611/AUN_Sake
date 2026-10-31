@@ -18,7 +18,7 @@ import {
   getSubCategoriesWithBrands,
   getSubCategory,
 } from "@/lib/data";
-import { normalize, type SearchEntry } from "@/lib/search";
+import { normalize, type Searchable, type SearchEntry } from "@/lib/search";
 import { defaultLocale, format, getDictionary } from "@/lib/i18n";
 import { paths } from "@/lib/routes";
 import { pageMetadata } from "@/lib/site";
@@ -33,67 +33,69 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-function haystack(...parts: (string | undefined)[]): string {
-  return normalize(parts.filter(Boolean).join(" "));
+/** 名前・よみ（関連度で重く見る）と、それ以外も含めた検索対象 */
+function searchable(names: (string | undefined)[], others: (string | undefined)[] = []): Searchable {
+  const n = names.filter((x): x is string => !!x).map(normalize);
+  return { names: n, haystack: normalize([...n, ...others.filter(Boolean)].join(" ")) };
 }
 
 function buildIndex(): SearchEntry[] {
   const brands: SearchEntry[] = getBrands().map((b) => {
     const sub = getSubCategory(b.subCategoryId)!;
+    const category = getCategory(b.categoryId)!;
     return {
       kind: "brand",
       title: b.name,
       detail: [sub.name, b.maker, b.region].join(t.common.sep),
       href: paths.brand(b.slug, locale),
-      haystack: haystack(
-        b.name,
-        b.kana,
-        b.maker,
-        getMaker(b.makerId)!.kana,
-        b.region,
-        getRegion(b.regionId)!.kana,
-        sub.name,
-        sub.kana,
-        getCategory(b.categoryId)!.name,
-        getCategory(b.categoryId)!.kana,
-        ...b.tags,
-        // 肴の名前・よみでも銘柄が出るように
-        ...getPairings(b.slug).flatMap((p) => {
-          const food = getFood(p.foodSlug)!;
-          return [food.name, food.kana];
-        }),
+      ...searchable(
+        [b.name, b.kana],
+        [
+          b.maker,
+          getMaker(b.makerId)!.kana,
+          b.region,
+          getRegion(b.regionId)!.kana,
+          sub.name,
+          sub.kana,
+          category.name,
+          category.kana,
+          ...b.tags,
+          // 肴の名前・よみでも銘柄が出るように
+          ...getPairings(b.slug).flatMap((p) => {
+            const food = getFood(p.foodSlug)!;
+            return [food.name, food.kana];
+          }),
+        ],
       ),
     };
   });
 
-  const foods: SearchEntry[] = getFoodsWithPairings()
-    .map((f) => ({ f, count: getPairingsByFood(f.slug).length }))
-    .map(({ f, count }) => ({
-      kind: "food",
-      title: f.name,
-      detail: format(t.searchPage.foodDetail, { count }),
-      href: paths.food(f.slug, locale),
-      haystack: haystack(f.name, f.kana),
-    }));
+  const foods: SearchEntry[] = getFoodsWithPairings().map((f) => ({
+    kind: "food",
+    title: f.name,
+    detail: format(t.searchPage.foodDetail, { count: getPairingsByFood(f.slug).length }),
+    href: paths.food(f.slug, locale),
+    ...searchable([f.name, f.kana]),
+  }));
 
   const categories: SearchEntry[] = [
     ...getCategoriesWithBrands().map((c) => ({
-        kind: "category" as const,
-        title: c.name,
-        detail: format(t.common.brandCount, { count: getBrandsByCategory(c.id).length }),
-        href: paths.category(c.id, locale),
-        haystack: haystack(c.name, c.nameEn, c.kana),
-      })),
+      kind: "category" as const,
+      title: c.name,
+      detail: format(t.common.brandCount, { count: getBrandsByCategory(c.id).length }),
+      href: paths.category(c.id, locale),
+      ...searchable([c.name, c.nameEn, c.kana]),
+    })),
     ...getSubCategoriesWithBrands().map((s) => ({
-        kind: "category" as const,
-        title: s.name,
-        detail: [
-          getCategory(s.categoryId)!.name,
-          format(t.common.brandCount, { count: getBrandsBySubCategory(s.id).length }),
-        ].join(t.common.sep),
-        href: paths.category(s.id, locale),
-        haystack: haystack(s.name, s.kana),
-      })),
+      kind: "category" as const,
+      title: s.name,
+      detail: [
+        getCategory(s.categoryId)!.name,
+        format(t.common.brandCount, { count: getBrandsBySubCategory(s.id).length }),
+      ].join(t.common.sep),
+      href: paths.category(s.id, locale),
+      ...searchable([s.name, s.kana]),
+    })),
   ];
 
   return [...brands, ...foods, ...categories];

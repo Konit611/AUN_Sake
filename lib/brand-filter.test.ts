@@ -49,7 +49,10 @@ describe("filterBrands", () => {
     { slug: "grace", kind: "wine", tastes: ["clean"], genres: ["seafood"], text: "グレイス甲州 山梨" },
   ];
   const run = (patch: Partial<typeof EMPTY_FILTERS>) =>
-    filterBrands(brands, { ...EMPTY_FILTERS, ...patch }, (b) => normalize(b.text)).map((b) => b.slug);
+    filterBrands(brands, { ...EMPTY_FILTERS, ...patch }, (b) => ({
+      names: [normalize(b.text.split(" ")[0])],
+      haystack: normalize(b.text),
+    })).map((b) => b.slug);
 
   it("条件なしなら全件", () => {
     expect(run({})).toEqual(["kuro", "dry", "grace"]);
@@ -59,6 +62,22 @@ describe("filterBrands", () => {
     expect(run({ taste: "crisp" })).toEqual(["kuro", "dry"]);
     expect(run({ taste: "crisp", food: "meat" })).toEqual(["kuro"]);
     expect(run({ kind: "beer", food: "seafood" })).toEqual([]);
+  });
+
+  it("キーワードがあれば名前に当たる銘柄が先、なければ元の並び", () => {
+    // 先頭の語が名前、残りは産地など
+    const list: B[] = [
+      { slug: "kuro", kind: "shochu", tastes: [], genres: [], text: "黒霧島 宮崎" },
+      { slug: "miyazaki", kind: "beer", tastes: [], genres: [], text: "宮崎ひでじビール 宮崎" },
+      { slug: "hyuga", kind: "shochu", tastes: [], genres: [], text: "日向 宮崎" },
+    ];
+    const rank = (q: string) =>
+      filterBrands(list, { ...EMPTY_FILTERS, q }, (b) => ({
+        names: [normalize(b.text.split(" ")[0])],
+        haystack: normalize(b.text),
+      })).map((b) => b.slug);
+    expect(rank("宮崎")).toEqual(["miyazaki", "kuro", "hyuga"]);
+    expect(rank("")).toEqual(["kuro", "miyazaki", "hyuga"]);
   });
 
   it("キーワードはカタカナ・ひらがなの違いを無視する", () => {
