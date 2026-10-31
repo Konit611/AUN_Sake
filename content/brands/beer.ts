@@ -9,6 +9,7 @@ export const beerBrands = [
     region: "日本",
     taste: "辛口で、すっきりとしたキレ。強めの炭酸が特徴。",
     tags: ["辛口", "キレ", "強炭酸"],
+    tastes: ["キレ", "すっきり"],
     serves: [{ serveId: "jug", how: "よく冷やして" }],
     recommendedServe: "jug",
     pairings: [
@@ -27,6 +28,7 @@ export const beerBrands = [
     region: "日本",
     taste: "麦のうまみと、さわやかな後味のバランス型。",
     tags: ["麦のうまみ", "バランス", "爽やか"],
+    tastes: ["コク", "すっきり"],
     serves: [{ serveId: "glass", how: "泡を3割ほどのせて" }],
     recommendedServe: "glass",
     pairings: [
@@ -45,6 +47,7 @@ export const beerBrands = [
     region: "日本",
     taste: "麦芽100%の深いコクと、上品な苦み。",
     tags: ["コク", "麦芽100%", "上品な苦み"],
+    tastes: ["コク"],
     serves: [{ serveId: "glass", how: "ゆっくり" }],
     recommendedServe: "glass",
     pairings: [

@@ -22,6 +22,8 @@ CSS나 콘텐츠를 바꿨는데 화면에 반영되지 않으면 `rm -rf .next`
 | 경로 | 내용 |
 |---|---|
 | `/` | 홈. 종류 → 브랜드 → 어울리는 안주 |
+| `/brands` | 브랜드 목록. 검색·종류·맛·안주 장르로 거르기 (`?q=&kind=&taste=&food=`) |
+| `/categories` | 분류 해설. 소분류별 특징과 어울리는 요리, 日本酒 4타입·早見表 |
 | `/brands/[slug]` | 브랜드: 맛 차트, 음용법별 안주, 페어링 노트 |
 | `/categories/[id]` | 대분류(`shochu`)·소분류(`imo-shochu`)별 브랜드 |
 | `/foods`, `/foods/[slug]` | 안주 → 어울리는 술 |
@@ -36,7 +38,8 @@ CSS나 콘텐츠를 바꿨는데 화면에 반영되지 않으면 `rm -rf .next`
 
 ```
 content/
-  categories.ts        대분류·소분류 (배열 순서 = 표시 순서)
+  categories.ts        대분류·소분류와 분류 해설 (배열 순서 = 표시 순서)
+  sake-guide.ts        日本酒 香味の4タイプ・特定名称の早見表
   serve-styles.ts      음용법 (お湯割り, ロック, 燗 …)
   foods.ts             안주
   brands/<대분류>.ts   브랜드와 그 브랜드의 페어링
@@ -46,8 +49,11 @@ content/
 
 ### 브랜드 추가
 
-1. 안주가 `content/foods.ts`에 없으면 먼저 추가한다. 한자가 들어간 이름은 검색용 `kana`(히라가나)를 넣는다.
+1. 안주가 `content/foods.ts`에 없으면 먼저 추가한다. 한자가 들어간 이름은 검색용 `kana`(히라가나)를 넣고,
+   `genres`(魚介・肉料理・揚げ物・煮物・辛い料理 중 해당하는 것, 없으면 `[]`)를 넣는다.
+   브랜드의 「合わせたい肴」 필터는 페어링한 안주의 `genres`에서 자동으로 정해진다.
 2. 소분류가 없으면 `content/categories.ts`에 추가한다. 대분류 id와 겹치면 안 된다.
+   소분류의 `examples`(아직 페이지가 없는 대표 브랜드 이름)에 이 브랜드가 있으면 지운다 (남아 있으면 빌드 실패).
 3. `content/brands/<대분류>.ts`에 추가한다.
 
 ```ts
@@ -56,11 +62,13 @@ content/
   name: "魔王",
   kana: "まおう",                     // 한자 이름이면 넣는다 (검색용)
   subCategoryId: "imo-shochu",
+  alsoIn: [],                         // 선택. 다른 소분류에도 표시 (예: 白ワイン + 日本ワイン)
   maker: "白玉醸造",
   region: "鹿児島",
   abv: 25,                            // 선택
   taste: "…",                         // 한두 문장
   tags: ["…", "…"],
+  tastes: ["華やか", "軽快"],         // すっきり・キレ・コク・甘み・華やか・軽快 중에서. 「銘柄から探す」 필터용
   tasteChart: { sweetness: 3, aroma: 4, kire: 3, koku: 4 },  // 선택, 1–5
   serves: [
     { serveId: "rock", how: "大きめの氷で", note: "…" },     // how·note 선택

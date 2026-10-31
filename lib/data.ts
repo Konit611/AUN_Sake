@@ -6,9 +6,11 @@ import { foods } from "@/content/foods";
 import { shochuBrands } from "@/content/brands/shochu";
 import { beerBrands } from "@/content/brands/beer";
 import { sakeBrands } from "@/content/brands/sake";
+import { wineBrands } from "@/content/brands/wine";
 import { notes } from "@/content/notes";
 import { validateContent } from "./validate";
 import {
+  FOOD_GENRES,
   PAIRING_LEVELS,
   type Brand,
   type BrandInput,
@@ -16,13 +18,14 @@ import {
   type Category,
   type CategoryId,
   type Food,
+  type FoodGenre,
   type Pairing,
   type PairingNote,
   type ServeStyle,
   type SubCategory,
 } from "./types";
 
-const brandInputs: BrandInput[] = [...shochuBrands, ...beerBrands, ...sakeBrands];
+const brandInputs: BrandInput[] = [...shochuBrands, ...beerBrands, ...sakeBrands, ...wineBrands];
 
 // 参照ミスがあればここで落ちるので、dev でもビルドでも気づける
 const errors = validateContent({
@@ -94,8 +97,11 @@ export function getBrandsByCategory(categoryId: CategoryId): Brand[] {
   return brands.filter((b) => b.categoryId === categoryId);
 }
 
+/** alsoIn で載せている銘柄も含む */
 export function getBrandsBySubCategory(subCategoryId: string): Brand[] {
-  return brands.filter((b) => b.subCategoryId === subCategoryId);
+  return brands.filter(
+    (b) => b.subCategoryId === subCategoryId || b.alsoIn?.includes(subCategoryId),
+  );
 }
 
 /** 同じ小分類のほかの銘柄 */
@@ -127,6 +133,16 @@ export function getFoods(): Food[] {
 
 export function getFood(slug: string): Food | undefined {
   return foodBySlug.get(slug);
+}
+
+/** 銘柄の肴ジャンル。ペアリングした肴の genres を合わせたもの */
+export function getBrandFoodGenres(brandSlug: string): FoodGenre[] {
+  const genres = new Set(
+    pairings
+      .filter((p) => p.brandSlug === brandSlug)
+      .flatMap((p) => foodBySlug.get(p.foodSlug)!.genres),
+  );
+  return FOOD_GENRES.filter((g) => genres.has(g));
 }
 
 // --- ペアリング ---

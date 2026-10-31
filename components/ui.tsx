@@ -20,7 +20,7 @@ export function SectionHeading({
 }
 
 /** 「阿」「吽」の飾り文字 */
-export function Glyph({ char, className = "" }: { char: "阿" | "吽"; className?: string }) {
+export function Glyph({ char, className = "" }: { char: string; className?: string }) {
   return (
     <span aria-hidden="true" className={`font-antique leading-none ${className}`}>
       {char}

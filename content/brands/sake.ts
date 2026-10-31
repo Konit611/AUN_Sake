@@ -10,6 +10,7 @@ export const sakeBrands = [
     region: "山口",
     taste: "華やかな吟醸香と、フルーティでやわらかな甘み。",
     tags: ["華やか", "フルーティ", "やわらか"],
+    tastes: ["華やか", "甘み"],
     serves: [{ serveId: "chilled", how: "10℃前後・ワイングラスで" }],
     recommendedServe: "chilled",
     pairings: [
@@ -28,6 +29,7 @@ export const sakeBrands = [
     region: "新潟",
     taste: "淡麗辛口。すっきりとして、食事の邪魔をしない。",
     tags: ["淡麗", "辛口", "食中酒"],
+    tastes: ["すっきり", "キレ"],
     serves: [{ serveId: "hiya" }, { serveId: "kan", how: "ぬる燗" }],
     recommendedServe: "hiya",
     pairings: [
@@ -46,6 +48,7 @@ export const sakeBrands = [
     region: "新潟",
     taste: "軽快でなめらか。冷やでも燗でもきれいに飲める。",
     tags: ["軽快", "なめらか", "燗映え"],
+    tastes: ["軽快", "すっきり"],
     serves: [{ serveId: "kan", how: "40〜45℃" }, { serveId: "hiya" }],
     recommendedServe: "kan",
     pairings: [

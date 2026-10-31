@@ -49,7 +49,8 @@ export function PairFinder({ categories }: { categories: FinderCategory[] }) {
         <div
           role="group"
           aria-label="お酒の種類"
-          className="mx-5 grid grid-cols-3 gap-1 rounded-[14px] bg-bg p-1 md:mx-0 md:flex md:flex-wrap md:gap-2 md:bg-transparent md:p-0"
+          style={{ gridTemplateColumns: `repeat(${categories.length}, minmax(0, 1fr))` }}
+          className="mx-5 grid gap-1 rounded-[14px] bg-bg p-1 md:mx-0 md:flex md:flex-wrap md:gap-2 md:bg-transparent md:p-0"
         >
           {categories.map((c) => {
             const on = c.id === cat.id;

@@ -11,4 +11,6 @@ export const serveStyles: ServeStyle[] = [
   { id: "kan", name: "燗" },
   { id: "glass", name: "グラス" },
   { id: "jug", name: "ジョッキ" },
+  { id: "wine-glass", name: "ワイングラス" },
+  { id: "flute", name: "フルートグラス" },
 ];
