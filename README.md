@@ -52,6 +52,8 @@ content/
   categories.ts        대분류·소분류와 분류 해설 (배열 순서 = 표시 순서)
   sake-guide.ts        日本酒 香味の4タイプ・特定名称の早見表
   serve-styles.ts      음용법 (お湯割り, ロック, 燗 …)
+  makers.ts            양조장·메이커 (이름, 읽기, 소재지)
+  regions.ts           산지 (현 또는 나라)
   foods.ts             안주
   brands/<대분류>.ts   브랜드와 그 브랜드의 페어링
   notes.ts             기사 메타데이터
@@ -63,9 +65,11 @@ content/
 1. 안주가 `content/foods.ts`에 없으면 먼저 추가한다. 한자가 들어간 이름은 검색용 `kana`(히라가나)를 넣고,
    `genres`(seafood・meat・fried・simmered・spicy = 魚介・肉料理・揚げ物・煮物・辛い料理 중 해당하는 것, 없으면 `[]`)를 넣는다.
    브랜드의 「合わせたい肴」 필터는 페어링한 안주의 `genres`에서 자동으로 정해진다.
-2. 소분류가 없으면 `content/categories.ts`에 추가한다. 대분류 id와 겹치면 안 된다.
+2. 양조장이 `content/makers.ts`에 없으면 추가한다 (소재지 `regionId`가 `content/regions.ts`에 없으면 그것도).
+   읽기가 같은 다른 양조장이 있을 수 있으니(旭酒造와 朝日酒造) id로 구분한다.
+3. 소분류가 없으면 `content/categories.ts`에 추가한다. 대분류 id와 겹치면 안 된다.
    소분류의 `examples`(아직 페이지가 없는 대표 브랜드 이름)에 이 브랜드가 있으면 지운다 (남아 있으면 빌드 실패).
-3. `content/brands/<대분류>.ts`에 추가한다.
+4. `content/brands/<대분류>.ts`에 추가한다.
 
 ```ts
 {
@@ -74,8 +78,8 @@ content/
   kana: "まおう",                     // 한자 이름이면 넣는다 (검색용)
   subCategoryId: "imo-shochu",
   alsoIn: [],                         // 선택. 다른 소분류에도 표시 (예: 白ワイン + 日本ワイン)
-  maker: "白玉醸造",
-  region: "鹿児島",
+  makerId: "shiratama-jozo",           // content/makers.ts 의 id
+  // regionId: "kagoshima",            // 산지가 양조장 소재지와 다를 때만
   abv: 25,                            // 선택
   taste: "…",                         // 한두 문장
   tags: ["…", "…"],

@@ -5,6 +5,8 @@ import {
   getBrands,
   getCategoriesWithBrands,
   getFood,
+  getMaker,
+  getRegion,
   getPairings,
   getSubCategory,
 } from "@/lib/data";
@@ -35,7 +37,9 @@ export default function BrandsPage() {
       sub: sub.name,
       subKana: sub.kana,
       maker: b.maker,
+      makerKana: getMaker(b.makerId)!.kana,
       region: b.region,
+      regionKana: getRegion(b.regionId)!.kana,
       tastes: b.tastes,
       genres: getBrandFoodGenres(b.slug),
       pair: best && getFood(best.foodSlug)!.name,

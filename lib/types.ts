@@ -39,6 +39,26 @@ export type SubCategory = {
   examples?: string[];
 };
 
+/** 産地。都道府県か国（日本の大手ビールのように全国区なら国） */
+export type Region = {
+  id: string;
+  name: string;
+  /** 検索用のよみ（ひらがな） */
+  kana?: string;
+  kind: "prefecture" | "country";
+  /** 都道府県なら国の id（"jp"） */
+  countryId?: string;
+};
+
+/** 蔵元・醸造所・メーカー */
+export type Maker = {
+  id: string;
+  name: string;
+  kana?: string;
+  /** 所在地。銘柄の産地は、銘柄側で regionId を書かなければここ */
+  regionId: string;
+};
+
 /** 飲み方のマスター（お湯割り、ロック…） */
 export type ServeStyle = {
   id: string;
@@ -94,8 +114,9 @@ export type BrandInput = {
   subCategoryId: string;
   /** ほかにも載せる小分類（例：グレイス甲州 → 白ワイン ＋ 日本ワイン） */
   alsoIn?: string[];
-  maker: string;
-  region: string;
+  makerId: string;
+  /** 産地が蔵元の所在地と違うときだけ書く */
+  regionId?: string;
   abv?: number;
   taste: string;
   tags: string[];
@@ -120,8 +141,14 @@ export type PairingInput = {
   serve?: string;
 };
 
-export type Brand = Omit<BrandInput, "pairings"> & {
+export type Brand = Omit<BrandInput, "pairings" | "regionId"> & {
   categoryId: CategoryId;
+  /** 蔵元名（表示用） */
+  maker: string;
+  /** 産地（銘柄の regionId、なければ蔵元の所在地） */
+  regionId: string;
+  /** 産地名（表示用） */
+  region: string;
 };
 
 export type Pairing = {
@@ -167,10 +194,12 @@ type Translatable<T, K extends keyof T> = Omit<T, K> & { [P in K]: T[P] extends 
 export type CategorySource = Translatable<Category, "name" | "lead">;
 export type SubCategorySource = Translatable<SubCategory, "name" | "meta" | "taste" | "pair">;
 export type ServeStyleSource = Translatable<ServeStyle, "name">;
+export type RegionSource = Translatable<Region, "name">;
+export type MakerSource = Translatable<Maker, "name">;
 export type FoodSource = Translatable<Food, "name">;
 export type BrandServeSource = Translatable<BrandServe, "how" | "note">;
 export type PairingSource = Translatable<PairingInput, "why">;
-export type BrandSource = Omit<Translatable<BrandInput, "name" | "maker" | "region" | "taste" | "tags" | "avoid">, "serves" | "pairings"> & {
+export type BrandSource = Omit<Translatable<BrandInput, "name" | "taste" | "tags" | "avoid">, "serves" | "pairings"> & {
   serves: BrandServeSource[];
   pairings: PairingSource[];
 };

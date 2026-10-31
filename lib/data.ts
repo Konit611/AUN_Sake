@@ -2,6 +2,8 @@ import "server-only";
 
 import { categories as categorySources, subCategories as subCategorySources } from "@/content/categories";
 import { serveStyles as serveStyleSources } from "@/content/serve-styles";
+import { makers as makerSources } from "@/content/makers";
+import { regions as regionSources } from "@/content/regions";
 import { foods as foodSources } from "@/content/foods";
 import { shochuBrands } from "@/content/brands/shochu";
 import { beerBrands } from "@/content/brands/beer";
@@ -22,6 +24,8 @@ import {
   type Category,
   type CategoryId,
   type Food,
+  type Maker,
+  type Region,
   type FoodGenre,
   type Pairing,
   type PairingNote,
@@ -46,14 +50,14 @@ const subCategories: SubCategory[] = subCategorySources.map((s) => ({
   pair: localize(s.pair, L),
 }));
 const serveStyles: ServeStyle[] = serveStyleSources.map((s) => ({ ...s, name: localize(s.name, L) }));
+const regions: Region[] = regionSources.map((r) => ({ ...r, name: localize(r.name, L) }));
+const makers: Maker[] = makerSources.map((m) => ({ ...m, name: localize(m.name, L) }));
 const foods: Food[] = foodSources.map((f) => ({ ...f, name: localize(f.name, L) }));
 const brandSources: BrandSource[] = [...shochuBrands, ...beerBrands, ...sakeBrands, ...wineBrands];
 const brandInputs: BrandInput[] = brandSources.map(
   (b) => ({
     ...b,
     name: localize(b.name, L),
-    maker: localize(b.maker, L),
-    region: localize(b.region, L),
     taste: localize(b.taste, L),
     tags: localize(b.tags, L),
     avoid: localize(b.avoid, L),
@@ -74,6 +78,8 @@ const errors = validateContent({
   categories,
   subCategories,
   serveStyles,
+  regions,
+  makers,
   foods,
   brands: brandInputs,
   notes,
@@ -86,10 +92,21 @@ const subCategoryById = new Map(subCategories.map((s) => [s.id, s]));
 const foodBySlug = new Map(foods.map((f) => [f.slug, f]));
 const serveById = new Map(serveStyles.map((s) => [s.id, s]));
 
+const regionById = new Map(regions.map((r) => [r.id, r]));
+const makerById = new Map(makers.map((m) => [m.id, m]));
+
 const brands: Brand[] = brandInputs.map((input) => {
-  const { pairings, ...b } = input;
+  const { pairings, regionId, ...b } = input;
   void pairings;
-  return { ...b, categoryId: subCategoryById.get(b.subCategoryId)!.categoryId };
+  const maker = makerById.get(b.makerId)!;
+  const region = regionById.get(regionId ?? maker.regionId)!;
+  return {
+    ...b,
+    categoryId: subCategoryById.get(b.subCategoryId)!.categoryId,
+    maker: maker.name,
+    regionId: region.id,
+    region: region.name,
+  };
 });
 const brandBySlug = new Map(brands.map((b) => [b.slug, b]));
 
@@ -129,6 +146,7 @@ const NONE: readonly never[] = [];
 const categoryById = new Map(categories.map((c) => [c.id, c]));
 const subCategoriesByCategory = groupBy(subCategories, (s) => [s.categoryId]);
 const brandsByCategory = groupBy(brands, (b) => [b.categoryId]);
+const brandsByMaker = groupBy(brands, (b) => [b.makerId]);
 /** alsoIn で載せている銘柄も含む */
 const brandsBySubCategory = groupBy(brands, (b) => [b.subCategoryId, ...(b.alsoIn ?? [])]);
 const pairingsByBrand = groupBy(pairings, (p) => [p.brandSlug]);
@@ -193,6 +211,29 @@ export function getRelatedBrands(slug: string): readonly Brand[] {
   const brand = brandBySlug.get(slug);
   if (!brand) return NONE;
   return getBrandsBySubCategory(brand.subCategoryId).filter((b) => b.slug !== slug);
+}
+
+// --- 蔵元・産地 ---
+
+export function getMakers(): readonly Maker[] {
+  return makers;
+}
+
+export function getMaker(id: string): Maker | undefined {
+  return makerById.get(id);
+}
+
+/** 同じ蔵元の銘柄（霧島酒造 → 黒霧島・赤霧島） */
+export function getBrandsByMaker(makerId: string): readonly Brand[] {
+  return brandsByMaker.get(makerId) ?? NONE;
+}
+
+export function getRegions(): readonly Region[] {
+  return regions;
+}
+
+export function getRegion(id: string): Region | undefined {
+  return regionById.get(id);
 }
 
 // --- 飲み方・肴 ---

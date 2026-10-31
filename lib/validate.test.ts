@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { BrandInput, Category, Food, PairingNote, ServeStyle, SubCategory } from "./types";
+import type { BrandInput, Category, Food, Maker, PairingNote, Region, ServeStyle, SubCategory } from "./types";
 import { validateContent } from "./validate";
 
 // 最小限の正しいデータ。各テストで一部だけ壊して、狙ったエラーが出ることを確かめる
@@ -18,6 +18,15 @@ function fixture() {
     { id: "rock", name: "ロック" },
     { id: "oyuwari", name: "お湯割り" },
   ];
+  const regions: Region[] = [
+    { id: "jp", name: "日本", kind: "country" },
+    { id: "miyazaki", name: "宮崎", kind: "prefecture", countryId: "jp" },
+    { id: "yamanashi", name: "山梨", kind: "prefecture", countryId: "jp" },
+  ];
+  const makers: Maker[] = [
+    { id: "kirishima", name: "霧島酒造", regionId: "miyazaki" },
+    { id: "chuo", name: "中央葡萄酒", regionId: "yamanashi" },
+  ];
   const foods: Food[] = [
     { slug: "kakuni", name: "豚の角煮", genres: ["meat"] },
     { slug: "tempura", name: "天ぷら", genres: ["fried"] },
@@ -27,8 +36,7 @@ function fixture() {
       slug: "kuro",
       name: "黒霧島",
       subCategoryId: "imo",
-      maker: "霧島酒造",
-      region: "宮崎",
+      makerId: "kirishima",
       taste: "",
       tags: [],
       tastes: ["sweet"],
@@ -42,8 +50,7 @@ function fixture() {
       name: "グレイス甲州",
       subCategoryId: "white",
       alsoIn: ["japan"],
-      maker: "中央葡萄酒",
-      region: "山梨",
+      makerId: "chuo",
       taste: "",
       tags: [],
       tastes: ["clean"],
@@ -62,7 +69,7 @@ function fixture() {
       author: "",
     },
   ];
-  return { categories, subCategories, serveStyles, foods, brands, notes };
+  return { categories, subCategories, serveStyles, regions, makers, foods, brands, notes };
 }
 
 describe("validateContent", () => {
@@ -135,6 +142,28 @@ describe("validateContent", () => {
     expect(errors).toContain('brand grace: alsoIn に subCategoryId と同じ "white" があります');
     expect(errors).toContain('brand grace: alsoIn "imo" は別の大分類です');
     expect(errors).toContain('brand grace: alsoIn "nope" がありません');
+  });
+
+  it("蔵元・産地の参照", () => {
+    const c = fixture();
+    c.brands[0].makerId = "nope";
+    c.brands[1].regionId = "mars";
+    c.makers.push({ id: "x", name: "x", regionId: "atlantis" });
+    const errors = validateContent(c);
+    expect(errors).toContain('brand kuro: makerId "nope" がありません');
+    expect(errors).toContain('brand grace: regionId "mars" がありません');
+    expect(errors).toContain('maker x: regionId "atlantis" がありません');
+  });
+
+  it("都道府県は国につながり、国には countryId を書かない", () => {
+    const c = fixture();
+    c.regions.push({ id: "osaka", name: "大阪", kind: "prefecture" });
+    c.regions.push({ id: "kyoto", name: "京都", kind: "prefecture", countryId: "miyazaki" });
+    c.regions.push({ id: "us", name: "アメリカ", kind: "country", countryId: "jp" });
+    const errors = validateContent(c);
+    expect(errors).toContain('region osaka: countryId "undefined" が国ではありません');
+    expect(errors).toContain('region kyoto: countryId "miyazaki" が国ではありません');
+    expect(errors).toContain("region us: 国に countryId は書きません");
   });
 
   it("tastes が空", () => {
