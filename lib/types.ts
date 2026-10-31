@@ -10,7 +10,17 @@ export type Category = {
   glyph: string;
   /** 「お酒の分類」ページの説明 */
   lead: string;
+  /**
+   * 「お酒の分類」ページでの解説のしかた。
+   * subcategories＝小分類ごとのカード（meta / taste / pair）、custom＝専用のガイド（app/categories/page.tsx の CUSTOM_GUIDES に登録）
+   */
+  guide: "subcategories" | "custom";
+  /** 写真が入るまでのカードの色とシルエット */
+  look: { tint: string; stroke: string; icon: KindIcon };
 };
+
+/** components/KindIcon.tsx のシルエット */
+export type KindIcon = "bottle" | "mug" | "tokkuri" | "wine-glass";
 
 export type SubCategory = {
   id: string;

@@ -3,7 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ShowMore } from "@/components/ShowMore";
 import { Breadcrumbs, type Crumb } from "@/components/Breadcrumbs";
-import { PairingBadge, SectionHeading } from "@/components/ui";
+import { BrandCard, brandGridClass } from "@/components/BrandCard";
+import { chipClass, SectionHeading } from "@/components/ui";
 import {
   getBrandsByCategory,
   getBrandsBySubCategory,
@@ -99,11 +100,7 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
                   <Link
                     href={`/categories/${t.id}`}
                     aria-current={on ? "page" : undefined}
-                    className={`flex min-h-11 items-center rounded-full border-2 px-5 text-[15px] whitespace-nowrap md:text-base ${
-                      on
-                        ? "border-accent bg-accent font-bold text-bg"
-                        : "border-line-strong font-medium text-fg hover:border-subtle"
-                    }`}
+                    className={chipClass(on)}
                   >
                     {t.name}
                   </Link>
@@ -114,40 +111,24 @@ export default async function CategoryPage({ params }: PageProps<"/categories/[i
         </nav>
       )}
 
-      <ShowMore className="grid grid-cols-1 gap-4 md:grid-cols-[repeat(auto-fill,minmax(340px,1fr))] md:gap-5">
+      <ShowMore className={brandGridClass}>
         {brands.map((b) => {
-          const top = getPairings(b.slug)[0];
+          const best = getPairings(b.slug)[0];
           return (
             <li key={b.slug}>
-              <Link
-                href={`/brands/${b.slug}`}
-                className="flex h-full flex-col gap-3 rounded-2xl border border-line bg-surface p-5 text-fg hover:border-line-strong md:rounded-[20px] md:p-[26px]"
-              >
-                <div className="flex flex-col gap-1">
-                  <p className="text-[22px] font-black md:text-[26px]">{b.name}</p>
-                  <p className="text-[13px] text-muted md:text-sm">
-                    {view.kind === "category" && `${getSubCategory(b.subCategoryId)!.name} ・ `}
-                    {b.maker} ・ {b.region}
-                  </p>
-                </div>
-                <p className="text-[15px] leading-[1.8] text-fg-2">{b.taste}</p>
-                <ul className="flex flex-wrap gap-1.5">
-                  {b.tags.map((t) => (
-                    <li
-                      key={t}
-                      className="rounded-full border border-line-strong px-2.5 py-1 text-xs text-fg-2 md:text-[13px]"
-                    >
-                      {t}
-                    </li>
-                  ))}
-                </ul>
-                {top && (
-                  <div className="mt-auto flex items-center gap-2.5 border-t border-line pt-3">
-                    <PairingBadge level={top.level} />
-                    <span className="text-base font-bold">{getFood(top.foodSlug)!.name}</span>
-                  </div>
-                )}
-              </Link>
+              <BrandCard
+                b={{
+                  slug: b.slug,
+                  name: b.name,
+                  kindName: category.name,
+                  sub: getSubCategory(b.subCategoryId)!.name,
+                  maker: b.maker,
+                  region: b.region,
+                  tastes: b.tastes,
+                  pair: best && getFood(best.foodSlug)!.name,
+                  look: category.look,
+                }}
+              />
             </li>
           );
         })}

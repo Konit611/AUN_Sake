@@ -34,7 +34,12 @@ export default function BrandsPage() {
       pair: best && getFood(best.foodSlug)!.name,
     };
   });
-  const kinds: ExplorerKind[] = getCategoriesWithBrands().map((c) => ({ id: c.id, name: c.name, kana: c.kana }));
+  const kinds: ExplorerKind[] = getCategoriesWithBrands().map((c) => ({
+    id: c.id,
+    name: c.name,
+    kana: c.kana,
+    look: c.look,
+  }));
 
   return (
     <div className="mx-auto flex max-w-[1200px] flex-col gap-4 pb-10 pt-7 md:gap-6 md:px-6 md:pb-20 md:pt-14">

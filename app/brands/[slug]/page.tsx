@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Breadcrumbs, type Crumb } from "@/components/Breadcrumbs";
-import { Glyph, PhotoPlaceholder } from "@/components/ui";
+import { Glyph, PhotoPlaceholder, TagList } from "@/components/ui";
 import {
   getBrand,
   getBrands,
@@ -113,16 +113,7 @@ export default async function BrandPage({ params }: PageProps<"/brands/[slug]">)
             {[brand.maker, sub.name, ...(brand.abv ? [`${brand.abv}度`] : [])].join(" ・ ")}
           </p>
           <p className="text-[15px] leading-[1.9] text-fg-2 md:text-lg">{brand.taste}</p>
-          <ul className="flex flex-wrap gap-1.5">
-            {brand.tags.map((t) => (
-              <li
-                key={t}
-                className="rounded-full border border-line-strong px-2.5 py-1 text-xs text-fg-2 md:text-[13px]"
-              >
-                {t}
-              </li>
-            ))}
-          </ul>
+          <TagList tags={brand.tags} />
           {brand.tasteChart && (
             <div className="flex flex-col gap-2.5 rounded-2xl bg-surface px-[18px] py-4 md:bg-transparent md:p-0 md:pt-2">
               <p className="text-xs text-subtle md:text-[13px]">味わいチャート（AUN編集部の主観）</p>

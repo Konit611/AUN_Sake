@@ -157,8 +157,8 @@ export default function Home() {
                 {k.subs.map((s) => (
                   <li key={s.id}>
                     <Link
-                      // 日本酒は「お酒の分類」で小分類ではなく香味の4タイプで説明しているので、日本酒の節へ
-                      href={`/categories#${k.id === "sake" ? k.id : s.id}`}
+                      // 専用ガイドの大分類（日本酒など）は小分類カードがないので、大分類の節へ
+                      href={`/categories#${k.guide === "custom" ? k.id : s.id}`}
                       className="flex min-h-11 items-center justify-between gap-3 border-t border-line py-3 text-fg hover:text-accent-soft md:border-b md:border-t-0"
                     >
                       <span className="flex min-w-0 flex-col gap-0.5">
