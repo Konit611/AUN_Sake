@@ -1,37 +1,133 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AUN — 酒と肴の、阿吽の呼吸。
 
-## Getting Started
+술(阿)과 안주(吽)의 페어링을 브랜드별로 소개하는 사이트.
+디자인: Claude Design 캔버스 「AUN — 酒と肴のペアリング」
 
-First, run the development server:
+- Next.js 16 (App Router, `cacheComponents`, Turbopack) / React 19 / Tailwind CSS v4
+- 콘텐츠는 레포 안의 TS 파일과 MDX (DB·CMS 없음), 모든 페이지는 빌드 때 정적 생성
+
+## 실행
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
+npm run build
+npm start            # standalone 서버 (빌드 후)
+npm test             # lib/ 로직과 content/ 규칙 테스트 (vitest)
+npm run typecheck    # 라우트 타입 생성 후 tsc
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+PR과 main push마다 GitHub Actions(`.github/workflows/ci.yml`)가 lint → typecheck → test → build와 Docker 이미지 빌드를 실행한다.
+콘텐츠를 고친 PR도 여기서 참조 오류가 걸러진다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+CSS나 콘텐츠를 바꿨는데 화면에 반영되지 않으면 `rm -rf .next` 후 다시 빌드한다 (Turbopack 캐시).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 페이지
 
-## Learn More
+| 경로 | 내용 |
+|---|---|
+| `/` | 홈. 종류 → 브랜드 → 어울리는 안주 |
+| `/brands` | 브랜드 목록. 검색·종류·맛·안주 장르로 거르기 (`?q=&kind=&taste=&food=`) |
+| `/categories` | 분류 해설. 소분류별 특징과 어울리는 요리, 日本酒 4타입·早見表 |
+| `/brands/[slug]` | 브랜드: 맛 차트, 음용법별 안주, 페어링 노트 |
+| `/categories/[id]` | 대분류(`shochu`)·소분류(`imo-shochu`)별 브랜드 |
+| `/foods`, `/foods/[slug]` | 안주 → 어울리는 술 |
+| `/notes`, `/notes/[slug]` | 페어링 노트 (기사) |
+| `/search` | 검색 (브라우저에서 동작, `?q=`) |
+| `/sitemap.xml`, `/robots.txt` | SEO |
+| `…/opengraph-image` | 공유 썸네일 (사이트 공통, 브랜드별, 기사별). `lib/og.tsx`, 폰트는 `assets/fonts` (OFL) |
 
-To learn more about Next.js, take a look at the following resources:
+## 화면 문구
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+화면에 나오는 문구는 `lib/i18n/dictionaries/ja.ts`에 둔다. `app/`·`components/`에 일본어를 직접 쓰면 `npm test`가 실패한다.
+링크는 `lib/routes.ts`의 `paths`로 만든다. 자세한 내용은 [docs/plan/i18n.md](docs/plan/i18n.md).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 콘텐츠 추가
 
-## Deploy on Vercel
+콘텐츠는 `content/`에만 있다. 페이지 코드는 `lib/data.ts`의 함수로만 읽는다.
+참조가 틀리면 (없는 안주 slug 등) `npm run dev` / `npm run build`가 어디가 틀렸는지 알려 주며 실패한다.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+content/
+  categories.ts        대분류·소분류와 분류 해설 (배열 순서 = 표시 순서)
+  sake-guide.ts        日本酒 香味の4タイプ・特定名称の早見表
+  serve-styles.ts      음용법 (お湯割り, ロック, 燗 …)
+  makers.ts            양조장·메이커 (이름, 읽기, 소재지)
+  regions.ts           산지 (현 또는 나라)
+  foods.ts             안주
+  brands/<대분류>.ts   브랜드와 그 브랜드의 페어링
+  notes.ts             기사 메타데이터
+  notes/<slug>.mdx     기사 본문
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# AUN_Sake
+### 브랜드 추가
+
+1. 안주가 `content/foods.ts`에 없으면 먼저 추가한다. 한자가 들어간 이름은 검색용 `kana`(히라가나)를 넣고,
+   `genres`(seafood・meat・fried・simmered・spicy = 魚介・肉料理・揚げ物・煮物・辛い料理 중 해당하는 것, 없으면 `[]`)를 넣는다.
+   브랜드의 「合わせたい肴」 필터는 페어링한 안주의 `genres`에서 자동으로 정해진다.
+2. 양조장이 `content/makers.ts`에 없으면 추가한다 (소재지 `regionId`가 `content/regions.ts`에 없으면 그것도).
+   읽기가 같은 다른 양조장이 있을 수 있으니(旭酒造와 朝日酒造) id로 구분한다.
+3. 소분류가 없으면 `content/categories.ts`에 추가한다. 대분류 id와 겹치면 안 된다.
+   소분류의 `examples`(아직 페이지가 없는 대표 브랜드 이름)에 이 브랜드가 있으면 지운다 (남아 있으면 빌드 실패).
+4. `content/brands/<대분류>.ts`에 추가한다.
+
+```ts
+{
+  slug: "maou",                       // URL: /brands/maou
+  name: "魔王",
+  kana: "まおう",                     // 한자 이름이면 넣는다 (검색용)
+  subCategoryId: "imo-shochu",
+  alsoIn: [],                         // 선택. 다른 소분류에도 표시 (예: 白ワイン + 日本ワイン)
+  makerId: "shiratama-jozo",           // content/makers.ts 의 id
+  // regionId: "kagoshima",            // 산지가 양조장 소재지와 다를 때만
+  abv: 25,                            // 선택
+  taste: "…",                         // 한두 문장
+  tags: ["…", "…"],
+  tastes: ["floral", "light"],        // clean・crisp・rich・sweet・floral・light (すっきり・キレ・コク・甘み・華やか・軽快). 「銘柄から探す」 필터용
+  // 선택. 축은 대분류마다 content/categories.ts 의 chart.axes 와 정확히 같아야 한다 (1–5).
+  // 축이 정의되지 않은 대분류(지금은 焼酎 외 전부)의 브랜드는 쓸 수 없다
+  tasteChart: { sweetness: 3, aroma: 4, kire: 3, koku: 4 },
+  serves: [
+    { serveId: "rock", how: "大きめの氷で", note: "…" },     // how·note 선택
+  ],
+  recommendedServe: "rock",           // serves 중 하나
+  pairings: [
+    // level: "aun"(阿吽) | "good"(好相性) | "surprise"(意外)
+    // serve 를 넣으면 브랜드 페이지 「飲み方別、息の合う肴」에 나온다.
+    // 같은 안주라도 serve 가 다르면 따로 쓸 수 있다 (예: 角煮를 お湯割り와 ロック으로 각각 평가)
+    { food: "buta-kakuni", level: "aun", serve: "rock", why: "…" },
+  ],
+  avoid: "…",                         // 선택. 「息が合いにくい」
+}
+```
+
+브랜드는 추가하는 순간 홈, 분류, 안주, 검색, sitemap에 모두 반영된다.
+소분류·안주 페이지는 연결된 브랜드가 있을 때만 생성된다.
+
+### 기사 추가 (주 1회)
+
+1. `content/notes.ts`에 메타데이터를 추가한다.
+   - `brandSlug` × `foodSlug`(× `serveId`)는 **등록된 궁합**이어야 한다 (아니면 테스트·빌드 실패).
+   - `lead`: 2–3문장 요약. 브랜드 페이지의 발췌, 기사 목록, RSS, 검색 결과 설명에 쓰인다.
+   - 미리 써 둘 때는 `draft: true`. 공개일에 이 줄을 지우는 PR을 머지한다.
+2. 같은 slug로 `content/notes/<slug>.mdx`에 본문을 쓴다.
+
+본문은 기사 페이지에만 나온다. 브랜드 페이지에는 최신 기사의 발췌와 다른 기사 목록,
+기사 페이지에는 관련 기사(같은 브랜드 → 같은 안주)가 나온다. RSS는 `/notes/feed.xml`.
+
+## 배포 (Docker)
+
+sitemap·canonical·OGP의 절대 URL은 **빌드 때** 정해진다. 배포 전에 실제 도메인을 넘긴다.
+
+```bash
+SITE_URL=https://example.com docker compose up -d --build
+```
+
+- `SITE_URL`을 생략하면 `http://localhost:3000`
+- 이미지는 `output: "standalone"` (약 315MB). 실행 단계에 `node_modules` 설치 없음
+
+## 문서
+
+- [docs/plan/data-structure.md](docs/plan/data-structure.md) — 데이터 구조와 검증 규칙
+- [docs/plan/db-migration.md](docs/plan/db-migration.md) — DB 이전 계획 (테이블, 제약, 순서)
+- [docs/plan/i18n.md](docs/plan/i18n.md) — 다국어 구조와 언어 추가 순서
